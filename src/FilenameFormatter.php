@@ -30,14 +30,32 @@ class FilenameFormatter
             },
 
             ':hour' => function ($path) {
+                $exif = $this->exif($path);
+
+                if (isset($exif['DateTimeOriginal'])) {
+                    return date('H', strtotime($exif['DateTimeOriginal']));
+                }
+
                 return date('H', filemtime($path));
             },
 
             ':minute' => function ($path) {
+                $exif = $this->exif($path);
+
+                if (isset($exif['DateTimeOriginal'])) {
+                    return date('i', strtotime($exif['DateTimeOriginal']));
+                }
+
                 return date('i', filemtime($path));
             },
 
             ':second' => function ($path) {
+                $exif = $this->exif($path);
+
+                if (isset($exif['DateTimeOriginal'])) {
+                    return date('s', strtotime($exif['DateTimeOriginal']));
+                }
+                
                 return date('s', filemtime($path));
             },
 

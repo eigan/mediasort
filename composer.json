@@ -2,7 +2,12 @@
   "name": "eig/prettyprint",
   "description": "Utility for batch renaming files in a directory",
   "require": {
-    "symfony/console": "^3.3"
+    "symfony/console": "^3.3",
+    "php": ">=7.0"
+  },
+
+  "suggest": {
+    "ext-exif": "Read camera meta information"
   },
 
   "require-dev": {

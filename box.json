@@ -1,0 +1,18 @@
+{
+  "directories": [
+    "src",
+    "vendor/composer",
+    "vendor/symfony",
+    "vendor/psr/log",
+    "vendor/phpseclib",
+    "vendor/herrera-io/json",
+    "vendor/paragonie/random_compat",
+    "vendor/herrera-io/phar-update"
+  ],
+  "files": [
+    "vendor/autoload.php"
+  ],
+  "main": "bin/prettytree",
+  "output": "prettytree.phar",
+  "stub": true
+}

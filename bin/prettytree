@@ -1,0 +1,15 @@
+#!/usr/bin/env php
+<?php
+
+// installed via composer?
+$autoload = __DIR__.'/../../../autoload.php';
+
+if (file_exists($autoload)) {
+    require_once $autoload;
+} else {
+    require_once __DIR__.'/../vendor/autoload.php';
+}
+
+$app = new \Eig\PrettyTree\Application(getcwd());
+
+$app->run();

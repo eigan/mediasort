@@ -70,9 +70,7 @@ class Command extends SymfonyCommand
 
         $only = $input->getOption('only');
 
-        foreach ($this->iterate($source, $recursive) as $fileSourcePath => $file) {
-            $fileSourcePath = $file->getPathname();
-
+        foreach ($this->iterate($source, $recursive) as $fileSourcePath) {
             if ($this->shouldSkip($fileSourcePath, $ignore, $only)) {
                 continue;
             }
@@ -213,13 +211,32 @@ class Command extends SymfonyCommand
         return hash_file('md5', $fileSourcePath) === hash_file('md5', $fileDestinationPath);
     }
 
-    private function iterate(string $path, bool $recursive = false): \Iterator
+    private function iterate(string $root, bool $recursive = false): \Iterator
     {
-        if ($recursive) {
-            return new \RecursiveIteratorIterator(new \RecursiveDirectoryIterator($path));
+        $paths = [];
+        $dirs = [];
+
+        foreach (new \DirectoryIterator($root) as $fileName => $file) {
+            $pathname = $file->getPathname();
+
+            $paths[date('U', filemtime($pathname)) . $pathname] = $pathname;
+
+            if ($file->isDir() && !$file->isDot()) {
+                $dirs[] = $pathname;
+            }
         }
 
-        return new \DirectoryIterator($path);
+        ksort($paths);
+
+        foreach ($paths as $path) {
+            yield $path;
+        }
+
+        if ($recursive) {
+            foreach ($dirs as $dir) {
+                yield from $this->iterate($dir, $recursive);
+            }
+        }
     }
 
     private function realpath(string $path): string

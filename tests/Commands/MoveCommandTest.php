@@ -252,7 +252,7 @@ class MoveCommandTest extends TestCase
         $this->assertFileExists($root . '/destination/myfile.JPG');
     }
 
-    public function testRecursive()
+    public function testNotRecursive()
     {
         $directory = $this->createDirectory([
             'source' => [
@@ -275,6 +275,31 @@ class MoveCommandTest extends TestCase
 
         $root = $directory->url();
         $this->assertFileExists($root . '/source/sub/subfile.txt');
+    }
+
+    public function testRecursive()
+    {
+        $directory = $this->createDirectory([
+            'source' => [
+                'myfile.jpg' => 'content',
+                'sub' => [
+                    'subfile.txt' => 'content'
+                ]
+            ],
+            'destination' => [
+
+            ]
+        ]);
+
+        $this->execute([
+            'source' => $directory->url() . '/source',
+            'destination' => $directory->url() . '/destination',
+
+            '-r' => true
+        ]);
+
+        $root = $directory->url();
+        $this->assertFileExists($root . '/destination/sub/subfile.txt');
     }
 
     public function testIncrementHit()

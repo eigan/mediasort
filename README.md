@@ -41,31 +41,25 @@ mv prettytree.phar /usr/local/bin/prettytree
 
 
 ### Usage
-```
-prettytree source destination --format=":original"
-```
-
 #### Options
 ```
 --format            Reformat the path
                     Example: --format=":year/:month/:name:ext"
              
                     Possible formatters:
-                        :original (default)
+                        :original (original path)
+                        :date (alias ":year-:monthnumeric-:day")
+                        :time (alias ":hour::minute::second")
+                        :month (alias ":monumeric - :monthstring")
                         :year
                         :monthnumeric
                         :monthstring
-                        :month
                         :day
-                        :date (alias ":year-:monthnumeric-:day")
-                        :time (alias ":hour::minute::second")
                         :hour
                         :minute
                         :second
-                        :exifyear
-                        :original
                         :ext
-                        :name
+                        :name (original filename)
                      
                     Exif is mostly used if available
 

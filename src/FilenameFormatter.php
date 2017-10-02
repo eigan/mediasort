@@ -104,9 +104,6 @@ class FilenameFormatter
                 return date('d', filemtime($path));
             },
 
-            ':exifyear' => function ($path) {
-            },
-
             ':original' => function ($path) {
                 return pathinfo($path)['filename'];
             },

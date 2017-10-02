@@ -2,7 +2,7 @@
 
 #### Example
 ```
-reorg source destination --format=":year/:month/:date :time:ext" -n
+prettyprint source destination --format=":year/:month/:date :time:ext" -n
 ```
 
 ```

@@ -22,6 +22,25 @@ class FilenameFormatter
     protected function setupFormatters()
     {
         $this->formatters = [
+            ':date' => function ($path) {
+                return $this->format(':day.:monthnumeric.:year', $path);
+            },
+            ':time' => function ($path) {
+                return $this->format(':hour::minute::second', $path);
+            },
+
+            ':hour' => function ($path) {
+                return date('H', filemtime($path));
+            },
+
+            ':minute' => function ($path) {
+                return date('i', filemtime($path));
+            },
+
+            ':second' => function ($path) {
+                return date('s', filemtime($path));
+            },
+
             ':year' => function ($path) {
                 // Check exif first
                 $exif = $this->exif($path);

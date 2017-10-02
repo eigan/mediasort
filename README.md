@@ -28,6 +28,11 @@ prettytree source destination --format=":original"
                         :monthstring
                         :month
                         :day
+                        :date (alias ":day.:monthnumeric.:year")
+                        :time (alias ":hour::minute::second")
+                        :hour
+                        :minute
+                        :second
                         :exifyear
                         :original
                         :ext

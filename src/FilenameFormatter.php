@@ -39,6 +39,10 @@ class FilenameFormatter
                 return date('H', filemtime($path));
             },
 
+            ':dirname' => function ($path) {
+                return basename(pathinfo($path, PATHINFO_DIRNAME));
+            },
+
             ':minute' => function ($path) {
                 $exif = $this->exif($path);
 

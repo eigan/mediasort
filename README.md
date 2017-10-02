@@ -60,6 +60,7 @@ mv prettytree.phar /usr/local/bin/prettytree
                         :second
                         :ext
                         :name (original filename)
+                        :dirname (name of parent directory)
                      
                     Exif is mostly used if available
 

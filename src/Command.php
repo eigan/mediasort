@@ -79,6 +79,10 @@ class Command extends SymfonyCommand
                 $io->note('File: ' . $fileSourcePath);
             }
 
+            if ($input->isInteractive() && !$output->isVerbose()) {
+                $io->text("Source: $fileSourcePath");
+            }
+
             try {
                 $fileDestinationPath = $this->makeFileDestinationPath($destination, $source, $fileSourcePath, $format);
             } catch (\RuntimeException $e) {
@@ -91,6 +95,10 @@ class Command extends SymfonyCommand
             }
 
             if (file_exists($fileDestinationPath)) {
+                if ($output->isVerbose()) {
+                    $io->text('Destination exists');
+                }
+
                 if ($this->isDuplicate($fileSourcePath, $fileDestinationPath)) {
                     if ($output->isVerbose()) {
                         $io->success('Skipped: Duplicate');
@@ -106,8 +114,7 @@ class Command extends SymfonyCommand
                 mkdir(dirname($fileDestinationPath), 0777, true);
             }
 
-            if ($input->isInteractive() && !$output->isVerbose()) {
-                $io->text("Source: $fileSourcePath");
+            if ($input->isInteractive()) {
                 $io->text("Destination: $fileDestinationPath");
             }
 

@@ -282,6 +282,7 @@ class MoveCommandTest extends TestCase
         $this->assertFileExists($root . '/destination/noext (1)');
     }
 
+    /*
     public function testLink()
     {
         $this->markTestIncomplete('Using link() is not supported with the Virtual File System');
@@ -306,7 +307,7 @@ class MoveCommandTest extends TestCase
 
         $this->assertFileExists($root . '/source/myfile.jpg');
         $this->assertFileExists($root . '/destination/myfile.jpg');
-    }
+    }*/
 
     private function createDirectory($structure)
     {

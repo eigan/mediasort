@@ -64,13 +64,19 @@ mv prettytree.phar /usr/local/bin/prettytree
                     Exif is mostly used if available
 
 -r, --recursive     Look for files recursively in source
+
 --only              Only files with the given extensions
                     Example: --only="jpg,gif"
                     
 --link              Create hardlink instead of moving
 
 -v                  Show additional information
+
 -n                  Disable interaction (Will autoconfirm)
+
+--ignore            Ignore certain file extensions
+                    Example: --ignore="db,db-journal"
+
 ```
 Note: shortcuts cannot be combined, `-nv` will not work. This is a limitation of `symfony/console`.
 

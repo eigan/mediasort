@@ -219,6 +219,39 @@ class MoveCommandTest extends TestCase
         $this->assertFileExists($root . '/destination/myfile.JPG');
     }
 
+    public function testIgnore()
+    {
+        $directory = $this->createDirectory([
+            'source' => [
+                'myfile.jpg' => 'content',
+                'myfile.JPG' => 'content2',
+                'otherfile.txt' => 'hehehe',
+                'myfile.php' => '<?php ?>',
+                'empty' => ''
+            ],
+            'destination' => [
+
+            ]
+        ]);
+
+        $this->execute([
+            'source' => $directory->url() . '/source',
+            'destination' => $directory->url() . '/destination',
+
+            '--ignore' => 'txt,php,'
+        ]);
+
+        $root = $directory->url();
+        $this->assertFileExists($root . '/source/otherfile.txt');
+        $this->assertFileExists($root . '/source/myfile.php');
+        $this->assertFileExists($root . '/source/empty');
+        $this->assertFileNotExists($root . '/source/myfile.jpg');
+        $this->assertFileNotExists($root . '/source/myfile.JPG');
+
+        $this->assertFileExists($root . '/destination/myfile.jpg');
+        $this->assertFileExists($root . '/destination/myfile.JPG');
+    }
+
     public function testRecursive()
     {
         $directory = $this->createDirectory([

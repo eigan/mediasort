@@ -39,6 +39,7 @@ class Command extends SymfonyCommand
         $this->addOption('only', '', InputOption::VALUE_OPTIONAL, 'Limit by extensions');
         $this->addOption('link', '', InputOption::VALUE_NONE, 'Use hardlink instead of moving');
         $this->addOption('recursive', 'r', InputOption::VALUE_NONE, 'Go recursive');
+        $this->addOption('ignore', '', InputOption::VALUE_OPTIONAL, 'Ignore files with extension');
     }
 
     protected function execute(InputInterface $input, OutputInterface $output)
@@ -46,6 +47,7 @@ class Command extends SymfonyCommand
         $format = $input->getOption('format');
         $shouldLink = $input->getOption('link');
         $recursive = $input->getOption('recursive');
+        $ignore = $input->getOption('ignore');
 
         $io = new SymfonyStyle($input, $output);
 
@@ -71,7 +73,7 @@ class Command extends SymfonyCommand
         foreach ($this->iterate($source, $recursive) as $fileSourcePath => $file) {
             $fileSourcePath = $file->getPathname();
 
-            if ($this->shouldSkip($fileSourcePath, $only)) {
+            if ($this->shouldSkip($fileSourcePath, $ignore, $only)) {
                 continue;
             }
 
@@ -131,10 +133,21 @@ class Command extends SymfonyCommand
         ];
     }
 
-    private function shouldSkip($fileSourcePath, ?string $only)
+    private function shouldSkip($fileSourcePath, ?string $ignore, ?string $only)
     {
         if (is_dir($fileSourcePath)) {
             return true;
+        }
+
+        if ($ignore) {
+            $ignoreInput = explode(',', $ignore);
+            $extensions = array_map(function ($ext) {
+                return trim($ext);
+            }, $ignoreInput);
+
+            if (in_array(pathinfo($fileSourcePath, PATHINFO_EXTENSION), $extensions, true)) {
+                return true;
+            }
         }
 
         if ($only) {
@@ -143,7 +156,9 @@ class Command extends SymfonyCommand
                 return trim($ext);
             }, $input);
 
-            return !in_array(pathinfo($fileSourcePath, PATHINFO_EXTENSION), $extensions, true);
+            if (!in_array(pathinfo($fileSourcePath, PATHINFO_EXTENSION), $extensions, true)) {
+                return true;
+            }
         }
 
         return false;

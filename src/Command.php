@@ -108,18 +108,12 @@ class Command extends SymfonyCommand
             }
 
             if ($shouldLink) {
-                if ($io->confirm('Move?')) {
-                    echo 'MOVING';
+                if ($io->confirm('Create hardlink?')) {
                     link($fileSourcePath, $fileDestinationPath);
-                } else {
-                    echo 'NOPE';
                 }
             } else {
-                if ($io->confirm('Create hardlink?')) {
-                    echo 'REAN';
+                if ($io->confirm('Move?')) {
                     rename($fileSourcePath, $fileDestinationPath);
-                } else {
-                    echo 'NOPE';
                 }
             }
         }

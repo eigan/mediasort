@@ -11,7 +11,7 @@ class Application extends \Symfony\Component\Console\Application
      */
     private $rootPath;
 
-    public function __construct(string $rootPath = null)
+    public function __construct(string $rootPath = '')
     {
         parent::__construct('Uniktree', self::VERSION);
 

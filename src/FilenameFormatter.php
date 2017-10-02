@@ -81,10 +81,8 @@ class FilenameFormatter
             },
 
             ':device' => function ($path) {
-                global $formatters;
-
-                $make = $formatters['/device:make/']($path);
-                $model = $formatters['/device:model/']($path);
+                $make = $this->format('device:make', $path);
+                $model = $this->format('device:model', $path);
 
                 if (empty($make) && empty($model)) {
                     return 'Unknown';

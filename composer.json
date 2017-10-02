@@ -9,7 +9,8 @@
     "friendsofphp/php-cs-fixer": "dev-master",
     "phpunit/phpunit": "^6.3",
     "mikey179/vfsStream": "^1.6",
-    "kherge/box": "^2.7"
+    "kherge/box": "^2.7",
+    "phpstan/phpstan": "^0.8.5"
   },
 
   "autoload": {

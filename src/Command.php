@@ -21,7 +21,7 @@ class Command extends SymfonyCommand
      */
     private $rootPath;
 
-    public function __construct(string $rootPath = null)
+    public function __construct(string $rootPath = '')
     {
         parent::__construct(null);
 
@@ -79,6 +79,7 @@ class Command extends SymfonyCommand
                 $fileDestinationPath = $this->makeFileDestinationPath($destination, $source, $fileSourcePath, $format);
             } catch (\RuntimeException $e) {
                 $io->error($e->getMessage());
+                continue;
             }
 
             if ($output->isVerbose()) {

@@ -5,9 +5,10 @@
 git clone https://gitlab.com/eigan/prettytree.git
 cd prettytree
 composer install --dev
-box build
 
-mv prettytree.phar /usr/local/bin
+php -d="phar.readonly=0" vendor/bin/box build
+chmod 755 prettytree.phar
+mv prettytree.phar /usr/local/bin/prettytree
 ```
 
 

@@ -32,8 +32,8 @@ class FilenameFormatter
             ':hour' => function ($path) {
                 $exif = $this->exif($path);
 
-                if (isset($exif['DateTimeOriginal'])) {
-                    return date('H', strtotime($exif['DateTimeOriginal']));
+                if (isset($exif['DateTimeOriginal']) && $time = strtotime($exif['DateTimeOriginal'])) {
+                    return date('H', $time);
                 }
 
                 return date('H', filemtime($path));
@@ -46,8 +46,8 @@ class FilenameFormatter
             ':minute' => function ($path) {
                 $exif = $this->exif($path);
 
-                if (isset($exif['DateTimeOriginal'])) {
-                    return date('i', strtotime($exif['DateTimeOriginal']));
+                if (isset($exif['DateTimeOriginal']) && $time = strtotime($exif['DateTimeOriginal'])) {
+                    return date('i', $time);
                 }
 
                 return date('i', filemtime($path));
@@ -56,8 +56,8 @@ class FilenameFormatter
             ':second' => function ($path) {
                 $exif = $this->exif($path);
 
-                if (isset($exif['DateTimeOriginal'])) {
-                    return date('s', strtotime($exif['DateTimeOriginal']));
+                if (isset($exif['DateTimeOriginal']) && $time = strtotime($exif['DateTimeOriginal'])) {
+                    return date('s', $time);
                 }
                 
                 return date('s', filemtime($path));
@@ -67,8 +67,8 @@ class FilenameFormatter
                 // Check exif first
                 $exif = $this->exif($path);
 
-                if (isset($exif['DateTimeOriginal'])) {
-                    return date('Y', strtotime($exif['DateTimeOriginal']));
+                if (isset($exif['DateTimeOriginal']) && $time = strtotime($exif['DateTimeOriginal'])) {
+                    return date('Y', $time);
                 }
 
                 return date('Y', filemtime($path));
@@ -81,8 +81,8 @@ class FilenameFormatter
             ':monthstring' => function ($path) {
                 $exif = $this->exif($path);
 
-                if (isset($exif['DateTimeOriginal'])) {
-                    return date('F', strtotime($exif['DateTimeOriginal']));
+                if (isset($exif['DateTimeOriginal']) && $time = strtotime($exif['DateTimeOriginal'])) {
+                    return date('F', $time);
                 }
 
                 return date('F', filemtime($path));
@@ -91,8 +91,8 @@ class FilenameFormatter
             ':monthnumeric' => function ($path) {
                 $exif = $this->exif($path);
 
-                if (isset($exif['DateTimeOriginal'])) {
-                    return date('m', strtotime($exif['DateTimeOriginal']));
+                if (isset($exif['DateTimeOriginal']) && $time = strtotime($exif['DateTimeOriginal'])) {
+                    return date('m', $time);
                 }
 
                 return date('m', filemtime($path));
@@ -101,8 +101,8 @@ class FilenameFormatter
             ':day' => function ($path) {
                 $exif = $this->exif($path);
 
-                if (isset($exif['DateTimeOriginal'])) {
-                    return date('d', strtotime($exif['DateTimeOriginal']));
+                if (isset($exif['DateTimeOriginal']) && $time = strtotime($exif['DateTimeOriginal'])) {
+                    return date('d', $time);
                 }
 
                 return date('d', filemtime($path));

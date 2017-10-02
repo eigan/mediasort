@@ -62,6 +62,10 @@ class Command extends SymfonyCommand
             return;
         }
 
+        if ($output->isVerbose()) {
+            $io->section("Source: $source\nDestination: $destination");
+        }
+
         $only = $input->getOption('only');
 
         foreach ($this->iterate($source, $recursive) as $fileSourcePath => $file) {
@@ -72,7 +76,7 @@ class Command extends SymfonyCommand
             }
 
             if ($output->isVerbose()) {
-                $io->note('Source: ' . $fileSourcePath);
+                $io->note('File: ' . $fileSourcePath);
             }
 
             try {
@@ -89,7 +93,7 @@ class Command extends SymfonyCommand
             if (file_exists($fileDestinationPath)) {
                 if ($this->isDuplicate($fileSourcePath, $fileDestinationPath)) {
                     if ($output->isVerbose()) {
-                        $io->text('Skipped: Duplicate');
+                        $io->success('Skipped: Duplicate');
                     }
                         
                     continue;
@@ -102,7 +106,7 @@ class Command extends SymfonyCommand
                 mkdir(dirname($fileDestinationPath), 0777, true);
             }
 
-            if ($input->isInteractive()) {
+            if ($input->isInteractive() && !$output->isVerbose()) {
                 $io->text("Source: $fileSourcePath");
                 $io->text("Destination: $fileDestinationPath");
             }

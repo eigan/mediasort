@@ -1,6 +1,6 @@
-### prettytree
+## prettytree
 
-#### Example
+### Example
 ```
 prettyprint source destination --format=":year/:month/:date :time:ext" -n
 ```
@@ -28,7 +28,7 @@ destination
 ```
 
 
-#### Installation
+### Installation
 ```
 git clone https://gitlab.com/eigan/prettytree.git
 cd prettytree
@@ -40,12 +40,12 @@ mv prettytree.phar /usr/local/bin/prettytree
 ```
 
 
-#### Usage
+### Usage
 ```
 prettytree source destination --format=":original"
 ```
 
-##### Options
+#### Options
 ```
 --format            Reformat the path
                     Example: --format=":year/:month/:name:ext"
@@ -82,8 +82,8 @@ Note: shortcuts cannot be combined, `-nv` will not work. This is a limitation of
 
 
 
-#### Scenarios
-##### File name collision
+### Scenarios
+#### File name collision
 ```
 filename = destination/2017/image.jpg
 

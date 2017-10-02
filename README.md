@@ -1,5 +1,33 @@
 ### prettytree
 
+#### Example
+```
+reorg source destination --format=":year/:month/:date :time:ext" -n
+```
+
+```
+source
+├── IMG_20170331_180220.jpg
+├── IMG_20170802_183621.jpg
+├── IMG_20170802_183630.jpg
+├── IMG_20170802_183634.jpg
+└── VID_20170709_121346.mp4
+```
+
+```
+destination
+└── 2017
+    ├── 03 - March
+    │   └── 2017-03-31 18:02:20.jpg
+    ├── 08 - August
+    │   ├── 2017-08-02 18:36:22.jpg
+    │   ├── 2017-08-02 18:36:30.jpg
+    │   └── 2017-08-02 18:36:35.jpg
+    └── 10 - October
+        └── 2017-10-02 08:47:09.mp4
+```
+
+
 #### Installation
 ```
 git clone https://gitlab.com/eigan/prettytree.git
@@ -38,11 +66,14 @@ prettytree source destination --format=":original"
                         :original
                         :ext
                         :name
- 
---recursive, -r     Also move files in sub directories
+                     
+                    Exif is mostly used if available
+
+-r, --recursive     Look for files recursively in source
 --only              Only files with the given extensions
                     Example: --only="jpg,gif"
---link              Use hardlink instead of moving
+                    
+--link              Create hardlink instead of moving
 
 -v                  Show additional information
 -n                  Disable interaction (Will autoconfirm)

@@ -69,7 +69,7 @@ class MoveCommandTest extends TestCase
         $this->commandTester->execute([
             'source' => 'pictures/source',
             'destination' => 'pretty'
-        ]);
+        ], ['interactive' => false]);
 
         $this->assertFileExists($root->url() . '/home/einar/pretty/myfile.jpg');
         $this->assertFileNotExists($root->url() . '/home/einar/pictures/source/myfile.jpg');
@@ -104,7 +104,7 @@ class MoveCommandTest extends TestCase
             'source' => 'source',
             'destination' => '../pretty',
             '-r' => true
-        ]);
+        ], ['interactive' => false]);
 
         $this->assertFileExists($root->url() . '/home/einar/pretty/myfile.jpg');
         $this->assertFileNotExists($root->url() . '/home/einar/pictures/source/myfile.jpg');
@@ -172,9 +172,8 @@ class MoveCommandTest extends TestCase
             'source' => $directory->url() . '/source',
             'destination' => $directory->url() . '/destination',
 
-            '--format' => ':year/:month/:day:ext',
-            '-r' => true
-        ]);
+            '--format' => ':year/:month/:day:ext'
+        ], ['interactive' => false]);
 
         $destinationPath = $directory->url() . '/destination/2017/10 - October/'.date('d').'.jpg';
 
@@ -316,7 +315,9 @@ class MoveCommandTest extends TestCase
 
     private function execute($arguments)
     {
-        $this->commandTester->execute($arguments);
+        $this->commandTester->execute($arguments, [
+            'interactive' => false
+        ]);
 
         return $this->commandTester->getDisplay();
     }

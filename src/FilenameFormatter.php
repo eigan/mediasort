@@ -128,7 +128,7 @@ class FilenameFormatter
         $this->formatters[$name] = $formatter;
     }
 
-    public function format(string $format, string $path)
+    public function format(string $format, string $path): string
     {
         $callbacks = [];
 
@@ -145,8 +145,14 @@ class FilenameFormatter
 
             $formatterFunction = $this->formatters[$formatterPattern];
 
-            $callbacks['/' . $formatterPattern . '/'] = function () use ($formatterFunction, $path) {
-                return $formatterFunction($path);
+            $callbacks['/' . $formatterPattern . '/'] = function () use ($formatterFunction, $path, $formatterPattern) {
+                try {
+                    $result = $formatterFunction($path);
+                } catch (\Exception $e) {
+                    throw new \RuntimeException("The format: [$formatterPattern] failed with message: " . $e->getMessage());
+                }
+
+                return $result;
             };
         }
 

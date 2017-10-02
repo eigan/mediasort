@@ -7,6 +7,7 @@ use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
+use Symfony\Component\Console\Style\SymfonyStyle;
 
 class Command extends SymfonyCommand
 {
@@ -46,6 +47,8 @@ class Command extends SymfonyCommand
         $shouldLink = $input->getOption('link');
         $recursive = $input->getOption('recursive');
 
+        $io = new SymfonyStyle($input, $output);
+
         try {
             list($source, $destination) = $this->resolvePaths($input);
 
@@ -68,11 +71,26 @@ class Command extends SymfonyCommand
                 continue;
             }
 
-            $fileDestinationPath = $this->makeFileDestinationPath($destination, $source, $fileSourcePath, $format);
+            if ($output->isVerbose()) {
+                $io->note('Source: ' . $fileSourcePath);
+            }
+
+            try {
+                $fileDestinationPath = $this->makeFileDestinationPath($destination, $source, $fileSourcePath, $format);
+            } catch (\RuntimeException $e) {
+                $io->error($e->getMessage());
+            }
+
+            if ($output->isVerbose()) {
+                $io->text('Destination: ' . $fileDestinationPath);
+            }
 
             if (file_exists($fileDestinationPath)) {
                 if ($this->isDuplicate($fileSourcePath, $fileDestinationPath)) {
-                    // Skip this file entirely
+                    if ($output->isVerbose()) {
+                        $io->text('Skipped: Duplicate');
+                    }
+                        
                     continue;
                 }
 
@@ -83,14 +101,25 @@ class Command extends SymfonyCommand
                 mkdir(dirname($fileDestinationPath), 0777, true);
             }
 
-            $output->writeln("$fileSourcePath -> $fileDestinationPath");
+            if ($input->isInteractive()) {
+                $io->text("Source: $fileSourcePath");
+                $io->text("Destination: $fileDestinationPath");
+            }
 
-            // TODO: Verbose
-            // TODO: Ask
             if ($shouldLink) {
-                link($fileSourcePath, $fileDestinationPath);
+                if ($io->confirm('Move?')) {
+                    echo 'MOVING';
+                    link($fileSourcePath, $fileDestinationPath);
+                } else {
+                    echo 'NOPE';
+                }
             } else {
-                rename($fileSourcePath, $fileDestinationPath);
+                if ($io->confirm('Create hardlink?')) {
+                    echo 'REAN';
+                    rename($fileSourcePath, $fileDestinationPath);
+                } else {
+                    echo 'NOPE';
+                }
             }
         }
     }
@@ -125,7 +154,11 @@ class Command extends SymfonyCommand
     {
         $mewPath = $this->formatter->format($format, $fileSourcePath);
 
-        return $destination . '/'  . $mewPath;
+        if ($mewPath[0] !== '/') {
+            return $destination . '/'  . $mewPath;
+        }
+
+        return $destination . $mewPath;
     }
 
     private function incrementPath($fileDestinationPath)

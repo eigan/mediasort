@@ -29,7 +29,7 @@ prettytree source destination --format=":original"
                         :monthstring
                         :month
                         :day
-                        :date (alias ":day.:monthnumeric.:year")
+                        :date (alias ":year-:monthnumeric-:day")
                         :time (alias ":hour::minute::second")
                         :hour
                         :minute

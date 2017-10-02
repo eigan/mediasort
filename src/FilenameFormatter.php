@@ -23,7 +23,7 @@ class FilenameFormatter
     {
         $this->formatters = [
             ':date' => function ($path) {
-                return $this->format(':day.:monthnumeric.:year', $path);
+                return $this->format(':year-:monthnumeric-:day', $path);
             },
             ':time' => function ($path) {
                 return $this->format(':hour::minute::second', $path);

@@ -5,6 +5,7 @@ namespace Eig\PrettyTree\Tests\Commands;
 use Eig\PrettyTree\Application;
 use org\bovigo\vfs\vfsStream;
 use PHPUnit\Framework\TestCase;
+use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Tester\CommandTester;
 
 class MoveCommandTest extends TestCase
@@ -172,8 +173,9 @@ class MoveCommandTest extends TestCase
             'source' => $directory->url() . '/source',
             'destination' => $directory->url() . '/destination',
 
+            '-r' => true,
             '--format' => ':year/:month/:day:ext'
-        ], ['interactive' => false]);
+        ], ['interactive' => false, 'verbosity' => OutputInterface::VERBOSITY_VERBOSE]);
 
         $destinationPath = $directory->url() . '/destination/2017/10 - October/'.date('d').'.jpg';
 
@@ -184,6 +186,7 @@ class MoveCommandTest extends TestCase
         $this->assertFileExists($destinationPath);
 
         $this->assertEquals('content', file_get_contents($destinationPath));
+        $this->assertContains('Skipped: Duplicate', $output);
     }
 
     public function testOnly()
@@ -340,11 +343,56 @@ class MoveCommandTest extends TestCase
         $this->assertFileExists($root . '/destination/noext (1)');
     }
 
-    /*
+    public function testHomeDirResolve()
+    {
+        if (function_exists('posix_getuid') === false) {
+            $this->markTestSkipped();
+        }
+
+        $homeInfo = posix_getpwuid(posix_getuid());
+
+        $homeInfo['dir'] = trim($homeInfo['dir'], '/');
+
+        $dir = explode('/', $homeInfo['dir']);
+
+        $result = [];
+        $structure = [];
+
+        foreach ($dir as $dir2) {
+            foreach ($result as $key => &$derp) {
+                if ($key != $dir2) {
+                    unset($result[$key]);
+                }
+            }
+            $result[$dir2] = [];
+
+            $structure[$dir2] = &$result;
+
+            $result = &$result[$dir2];
+        }
+
+        $result = [
+            'source' => [],
+            'destination' => []
+        ];
+
+        vfsStream::setup(reset($dir), null, reset($structure[reset($dir)]));
+
+        $output = $this->execute([
+            'source' => 'vfs://~/source',
+            'destination' => 'vfs://~/destination'
+        ], ['verbosity' => OutputInterface::VERBOSITY_VERBOSE]);
+
+        $this->assertContains($homeInfo['dir'], $output);
+    }
+
+    /**
+     * This doesnt work with vfs.. For know we just expect to crash
+     *
+     * @expectedException \PHPUnit\Framework\Error\Warning
+     */
     public function testLink()
     {
-        $this->markTestIncomplete('Using link() is not supported with the Virtual File System');
-
         $directory = $this->createDirectory([
             'source' => [
                 'myfile.jpg' => 'myfile'
@@ -354,27 +402,81 @@ class MoveCommandTest extends TestCase
             ]
         ]);
 
+        $this->expectExceptionMessage('link(): No such file or directory');
+
         $this->execute([
             'source' => $directory->url() . '/source',
             'destination' => $directory->url() . '/destination',
 
-            '--link' => 'test'
+            '--link' => true
+        ], ['verbosity' => OutputInterface::VERBOSITY_VERBOSE]);
+    }
+
+    public function testVerboseMode()
+    {
+        $directory = $this->createDirectory([
+            'source' => [
+                'myfile.jpg' => 'content',
+                'sub' => [
+                    'subfile.txt' => 'content'
+                ]
+            ],
+            'destination' => [
+
+            ]
         ]);
 
-        $root = $directory->url();
+        $output = $this->execute([
+            'source' => $directory->url() . '/source',
+            'destination' => $directory->url() . '/destination',
 
-        $this->assertFileExists($root . '/source/myfile.jpg');
-        $this->assertFileExists($root . '/destination/myfile.jpg');
-    }*/
+            '-r' => true
+        ], ['verbosity' => OutputInterface::VERBOSITY_VERBOSE]);
+
+        $this->assertContains('Source: ' . $directory->url() . '/source', $output);
+        $this->assertContains('Destination: ' . $directory->url() . '/destination', $output);
+        $this->assertContains('File: ' . $directory->url() . '/source/myfile.jpg', $output);
+    }
+
+    public function testInteractive()
+    {
+        $directory = $this->createDirectory([
+            'source' => [
+                'myfile.jpg' => 'content',
+                'tobeskipped.jpg' => 'content2'
+            ],
+            'destination' => [
+
+            ]
+        ]);
+
+        $output = $this->execute([
+            'source' => $directory->url() . '/source',
+            'destination' => $directory->url() . '/destination',
+
+            '-r' => true
+        ], ['interactive' => true], ['Yes', 'N']);
+
+        $this->assertContains('Move? (yes/no) [yes]', $output);
+
+        // Answer: yes, move
+        $this->assertFileExists($directory->url() . '/destination/myfile.jpg');
+
+        // Answer: N, Left unchanged
+        $this->assertFileNotExists($directory->url() . '/destination/tobeskipped.jpg');
+        $this->assertContains('content2', file_get_contents($directory->url() . '/source/tobeskipped.jpg'));
+    }
 
     private function createDirectory($structure)
     {
         return vfsStream::setup('test', null, $structure);
     }
 
-    private function execute($arguments)
+    private function execute($arguments, $options = [], $inputs = [])
     {
-        $this->commandTester->execute($arguments, [
+        $this->commandTester->setInputs($inputs);
+
+        $this->commandTester->execute($arguments, $options + [
             'interactive' => false
         ]);
 

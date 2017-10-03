@@ -51,6 +51,13 @@ class Command extends SymfonyCommand
 
         $io = new SymfonyStyle($input, $output);
 
+        if ($output->isVerbose()) {
+            $io->writeln("Format: $format");
+            $io->writeln("Use hardlink:\t$shouldLink");
+            $io->writeln("Recursive: $recursive");
+            $io->writeln("Ignore: $ignore");
+        }
+
         try {
             list($source, $destination) = $this->resolvePaths($input);
 
@@ -253,6 +260,7 @@ class Command extends SymfonyCommand
         if (function_exists('posix_getuid') && strpos($path, '~') !== false) {
             $info = posix_getpwuid(posix_getuid());
             $real = str_replace('~', $info['dir'], $path);
+            $real = str_replace('///', '//', $real);
         }
 
         if (!file_exists($real)) {

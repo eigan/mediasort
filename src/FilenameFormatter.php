@@ -109,7 +109,7 @@ class FilenameFormatter
             },
 
             ':original' => function ($path) {
-                return pathinfo($path)['filename'];
+                return pathinfo($path, PATHINFO_FILENAME) . $this->format(':ext', $path);
             },
 
             ':device:make' => function ($path) {

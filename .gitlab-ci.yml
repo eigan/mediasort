@@ -5,6 +5,7 @@ before_script:
   - apt-get install wget -yqq > /dev/null
   - apt-get install -yqq zlib1g-dev > /dev/null
   - docker-php-ext-install zip > /dev/null
+  - docker-php-ext-install exif > /dev/null
   - pecl install xdebug > /dev/null
 
   - echo "zend_extension=xdebug.so" >> /usr/local/etc/php/conf.d/test.ini

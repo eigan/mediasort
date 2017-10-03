@@ -99,14 +99,78 @@ class FilenameFormatterTest extends TestCase
         $this->assertEquals(date('F', $date), $this->formatter->format(':monthstring', $this->filePath));
     }
 
-    public function testOriginal()
-    {
-        $this->assertEquals('myfile.jpg', $this->formatter->format(':original', $this->filePath));
-        $this->assertEquals('other', $this->formatter->format(':original', $this->directory->url() . '/source/other'));
-    }
-
     public function testName()
     {
         $this->assertEquals('myfile', $this->formatter->format(':name', $this->filePath));
+    }
+
+    public function testExifTime()
+    {
+        $this->setupExif();
+
+        $this->assertEquals('17:49:56', $this->formatter->format(':time', __DIR__ . '/../exif.jpg'));
+    }
+
+    public function testExifDate()
+    {
+        $this->setupExif();
+
+        $this->assertEquals('2017-06-21', $this->formatter->format(':date', __DIR__ . '/../exif.jpg'));
+    }
+
+    public function testExifMonth()
+    {
+        $this->setupExif();
+
+        $this->assertEquals('06 - June', $this->formatter->format(':month', __DIR__ . '/../exif.jpg'));
+    }
+
+    public function testExifDevice()
+    {
+        $this->setupExif();
+
+        $this->assertEquals('Google Pixel', $this->formatter->format(':device', __DIR__ . '/../exif.jpg'));
+    }
+
+    public function testExifDeviceNoModel()
+    {
+        $this->setupExif();
+
+        $this->formatter->setFormatter(':devicemodel', function ($path) {
+            return '';
+        });
+
+        $this->assertEquals('Google', $this->formatter->format(':device', __DIR__ . '/../exif.jpg'));
+    }
+
+    public function testExifDeviceNoMake()
+    {
+        $this->setupExif();
+
+        $this->formatter->setFormatter(':devicemake', function ($path) {
+            return '';
+        });
+
+        $this->assertEquals('Pixel', $this->formatter->format(':device', __DIR__ . '/../exif.jpg'));
+    }
+
+    public function testExifDeviceNoMakeModel()
+    {
+        $this->setupExif();
+
+        $this->formatter->setFormatter(':devicemake', function ($path) {
+            return '';
+        });
+
+        $this->formatter->setFormatter(':devicemodel', function ($path) {
+            return '';
+        });
+
+        $this->assertEquals('Unknown', $this->formatter->format(':device', __DIR__ . '/../exif.jpg'));
+    }
+
+    private function setupExif()
+    {
+        vfsStream::copyFromFileSystem(__DIR__ . '/..', $this->directory, 4318847);
     }
 }

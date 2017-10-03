@@ -21,10 +21,11 @@ class Command extends SymfonyCommand
      */
     private $rootPath;
 
-    public function __construct(string $rootPath = '')
+    public function __construct(FilenameFormatter $formatter, string $rootPath = '')
     {
-        parent::__construct(null);
+        parent::__construct();
 
+        $this->formatter = $formatter;
         $this->rootPath = $rootPath;
     }
 
@@ -60,8 +61,6 @@ class Command extends SymfonyCommand
 
         try {
             list($source, $destination) = $this->resolvePaths($input);
-
-            $this->formatter = new FilenameFormatter();
 
             $this->formatter->setFormatter(':original', function ($path) use ($source) {
                 return str_replace($source, '', $path);

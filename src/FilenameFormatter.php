@@ -108,19 +108,15 @@ class FilenameFormatter
                 return date('d', filemtime($path));
             },
 
-            ':original' => function ($path) {
-                return pathinfo($path, PATHINFO_FILENAME) . $this->format(':ext', $path);
-            },
-
-            ':device:make' => function ($path) {
+            ':devicemake' => function ($path) {
                 $exif = $this->exif($path);
 
                 return $exif['Make'] ?? '';
             },
 
             ':device' => function ($path) {
-                $make = $this->format('device:make', $path);
-                $model = $this->format('device:model', $path);
+                $make = $this->format(':devicemake', $path);
+                $model = $this->format(':devicemodel', $path);
 
                 if (empty($make) && empty($model)) {
                     return 'Unknown';
@@ -134,10 +130,10 @@ class FilenameFormatter
                     return $make;
                 }
 
-                return $make.$model;
+                return $make. ' ' .$model;
             },
 
-            ':device:model' => function ($path) {
+            ':devicemodel' => function ($path) {
                 $exif = $this->exif($path);
 
                 return $exif['Model'] ?? '';
@@ -168,7 +164,7 @@ class FilenameFormatter
     {
         $callbacks = [];
 
-        preg_match_all('/\:([a-zA-Z_\x7f-\xff][a-zA-Z0-9_\x7f-\xff]*)/', $format, $matches);
+        preg_match_all('/\:([a-zA-Z_\x7f-\xff][a-zA-Z0-9_]*)/', $format, $matches);
 
         if (isset($matches[0]) === false || empty($matches[0])) {
             throw new \InvalidArgumentException('No valid formats');

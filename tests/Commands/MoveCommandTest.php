@@ -483,7 +483,44 @@ class MoveCommandTest extends TestCase
         $this->assertFileNotExists($directory->url() . '/destination/tobeskipped.jpg');
         $this->assertContains('content2', file_get_contents($directory->url() . '/source/tobeskipped.jpg'));
     }
-    
+
+    public function testFailingFormat()
+    {
+        $application = new Application();
+
+        $command = $application->find('move');
+
+        $commandTester = new CommandTester($command);
+
+        $application->getFilenameFormatter()->setFormatter(':crash', function ($path) {
+            throw new \RuntimeException('I am a crasher!');
+        });
+
+        $directory = $this->createDirectory([
+            'source' => [
+                'myfile.jpg' => 'content',
+                'other' => 'content2'
+            ],
+            'destination' => [
+
+            ]
+        ]);
+
+        $commandTester->execute([
+            'source' => $directory->url() . '/source',
+            'destination' => $directory->url() . '/destination',
+            '--format' => ':crash:ext',
+            '-v'
+        ], ['interactive' => false]);
+
+        $this->assertFileExists($directory->url() . '/source/myfile.jpg');
+        $this->assertFileExists($directory->url() . '/source/other');
+        $this->assertFileNotExists($directory->url() . '/destination/other');
+
+        $output = $commandTester->getDisplay();
+        $this->assertContains('The format: [:crash] failed with message: I am a crasher!', $output);
+    }
+
     private function createDirectory($structure)
     {
         return vfsStream::setup('test', null, $structure);

@@ -38,10 +38,27 @@ class MoveCommandTest extends TestCase
 
         $output = $this->execute([
             'source' => $directory->url() . '/source2',
-            'destination' => $directory->url() . '/destination'
+            'destination' => $directory->url() . '/destination',
         ]);
 
         $this->assertContains('Path ['.$directory->url() . '/source2] does not exist', $output);
+    }
+
+    public function testNoDestinationInput()
+    {
+        $directory = $this->createDirectory([
+            'source' => [
+                'myfile.jpg' => 'myfile'
+            ]
+        ]);
+
+        $output = $this->execute([
+            'source' => $directory->url() . '/source',
+            '--format' => ':day:ext'
+        ], ['verbosity' => OutputInterface::VERBOSITY_VERBOSE]);
+
+        $this->assertContains('Destination: ' . $directory->url() . '/source', $output);
+        $this->assertFileExists($directory->url() . '/source/' . date('d') . '.jpg');
     }
 
     public function testResolve()
@@ -466,7 +483,7 @@ class MoveCommandTest extends TestCase
         $this->assertFileNotExists($directory->url() . '/destination/tobeskipped.jpg');
         $this->assertContains('content2', file_get_contents($directory->url() . '/source/tobeskipped.jpg'));
     }
-
+    
     private function createDirectory($structure)
     {
         return vfsStream::setup('test', null, $structure);

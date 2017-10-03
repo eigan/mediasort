@@ -33,7 +33,7 @@ class Command extends SymfonyCommand
         $this->setName('move');
 
         $this->addArgument('source', InputArgument::REQUIRED);
-        $this->addArgument('destination', InputArgument::REQUIRED);
+        $this->addArgument('destination', InputArgument::OPTIONAL);
 
         $this->addOption('format', '', InputOption::VALUE_OPTIONAL, 'The format', ':original');
         $this->addOption('only', '', InputOption::VALUE_OPTIONAL, 'Limit by extensions');
@@ -139,9 +139,11 @@ class Command extends SymfonyCommand
 
     protected function resolvePaths(InputInterface $input): array
     {
+        $destination = $input->getArgument('destination') ?: $input->getArgument('source');
+
         return [
           $this->realpath($input->getArgument('source')),
-          $this->realpath($input->getArgument('destination'))
+          $this->realpath($destination)
         ];
     }
 

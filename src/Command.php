@@ -145,7 +145,7 @@ class Command extends SymfonyCommand
         ];
     }
 
-    private function shouldSkip($fileSourcePath, ?string $ignore, ?string $only)
+    private function shouldSkip($fileSourcePath, $ignore = false, $only = false)
     {
         if (is_dir($fileSourcePath)) {
             return true;

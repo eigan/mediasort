@@ -6,6 +6,12 @@
     "php": ">=7.0"
   },
 
+  "config": {
+    "platform": {
+      "php": "7.0.24"
+    }
+  },
+
   "suggest": {
     "ext-exif": "Read camera meta information"
   },

@@ -201,7 +201,11 @@ class FilenameFormatter
             return $this->exifCache[$file];
         }
 
-        $data = @exif_read_data($file);
+        $data = [];
+
+        if (function_exists('exif_read_data')) {
+            $data = @exif_read_data($file);
+        }
 
         if (is_array($data) === false) {
             $data = [];

@@ -1,3 +1,6 @@
+[![pipeline status](https://gitlab.com/eigan/prettytree/badges/master/pipeline.svg)](https://gitlab.com/eigan/prettytree/commits/master)
+[![coverage report](https://gitlab.com/eigan/prettytree/badges/master/coverage.svg)](https://gitlab.com/eigan/prettytree/commits/master)
+
 ## prettytree
 
 ### Example

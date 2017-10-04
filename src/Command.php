@@ -41,6 +41,7 @@ class Command extends SymfonyCommand
         $this->addOption('link', '', InputOption::VALUE_NONE, 'Use hardlink instead of moving');
         $this->addOption('recursive', 'r', InputOption::VALUE_NONE, 'Go recursive');
         $this->addOption('ignore', '', InputOption::VALUE_OPTIONAL, 'Ignore files with extension');
+        $this->addOption('only-type', '', InputOption::VALUE_OPTIONAL, 'Only files with specific type');
     }
 
     protected function execute(InputInterface $input, OutputInterface $output)
@@ -74,10 +75,8 @@ class Command extends SymfonyCommand
             $io->section("Source: $source\nDestination: $destination");
         }
 
-        $only = $input->getOption('only');
-
         foreach ($this->iterate($source, $recursive) as $fileSourcePath) {
-            if ($this->shouldSkip($fileSourcePath, $ignore, $only)) {
+            if ($this->shouldSkip($fileSourcePath, $input)) {
                 continue;
             }
 
@@ -146,8 +145,12 @@ class Command extends SymfonyCommand
         ];
     }
 
-    private function shouldSkip($fileSourcePath, $ignore = false, $only = false)
+    private function shouldSkip($fileSourcePath, InputInterface $input)
     {
+        $ignore = $input->getOption('ignore');
+        $only = $input->getOption('only');
+        $type = $input->getOption('only-type');
+
         if (is_dir($fileSourcePath)) {
             return true;
         }
@@ -174,7 +177,58 @@ class Command extends SymfonyCommand
             }
         }
 
+        if ($type) {
+            $input = explode(',', $type);
+
+            $extensions = $this->getTypesExtensions($input);
+
+            if (in_array(pathinfo($fileSourcePath, PATHINFO_EXTENSION), $extensions, true)) {
+                return false;
+            }
+
+            foreach ($input as $allowedType) {
+                if (strpos(mime_content_type($fileSourcePath), $allowedType) !== false) {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
         return false;
+    }
+
+    private function getTypesExtensions(array $types)
+    {
+        $allowed = [];
+
+        foreach ($types as $type) {
+            switch ($type) {
+                case 'image':
+                    $allowed += ['bmp', 'cgm', 'g3', 'gif', 'ief', 'jpeg', 'jpg', 'jpe', 'ktx', 'png', 'btif', 'sgi',
+                                 'svg', 'svgz', 'tiff', 'tif', 'psd', 'uvi', 'uvvi', 'uvg', 'uvvg', 'sub', 'djvu',
+                                 'djv', 'dwg', 'dxf', 'fbs', 'fpx', 'fst', 'mmr', 'rlc', 'mdi', 'wdp', 'npx', 'wbmp',
+                                 'xif', 'webp', '3ds', 'ras', 'cmx', 'fh', 'fhc', 'fh4', 'fh5', 'fh7', 'ico', 'sid',
+                                 'pcx', 'pic', 'pct', 'pnm', 'pbm', 'pgm', 'ppm', 'rgb', 'tga', 'xbm', 'xpm', 'xwd'];
+                    break;
+                case 'video':
+                    $allowed += ['3gp', '3g2', 'h261', 'h263', 'h264', 'jpgv', 'jpm', 'jpgm', 'mj2', 'mjp2', 'mp4',
+                                 'mp4v', 'mpg4', 'mpeg', 'mpg', 'mpe', 'm1v', 'm2v', 'ogv', 'qt', 'mov', 'uvh', 'uvvh',
+                                 'uvm', 'uvvm', 'uvp', 'uvvp', 'uvs', 'uvvs', 'uvv', 'uvvv', 'dvb', 'fvt', 'mxu', 'm4u',
+                                 'pyv', 'uvu', 'uvvu', 'viv', 'webm', 'f4v', 'fli', 'flv', 'm4v', 'mkv', 'mk3d', 'mks',
+                                 'mng', 'asf', 'asx', 'vob', 'wm', 'wmv', 'wmx', 'wvx', 'avi', 'movie', 'smv'];
+                    break;
+                case 'audio':
+                    $allowed += ['adp', 'au', 'snd', 'mid', 'midi', 'kar', 'rmi', 'mp4a', 'mpga', 'mp2', 'mp2a', 'mp3',
+                                 'm2a', 'm3a', 'oga', 'ogg', 'spx', 's3m', 'sil', 'uva', 'uvva', 'eol', 'dra', 'dts',
+                                 'dtshd', 'lvp', 'pya', 'ecelp4800', 'ecelp7470', 'ecelp9600', 'rip', 'weba', 'aac',
+                                 'aif', 'aiff', 'aifc', 'caf', 'flac', 'mka', 'm3u', 'wax', 'wma', 'ram', 'ra', 'rmp',
+                                 'wav', 'xm'];
+                    break;
+            }
+        }
+
+        return $allowed;
     }
 
     private function makeFileDestinationPath(string $destination, string $source, string $fileSourcePath, string $format)

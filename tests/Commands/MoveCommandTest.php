@@ -15,8 +15,6 @@ class MoveCommandTest extends TestCase
      */
     private $commandTester;
 
-    private $root;
-
     public function setUp()
     {
         $application = new Application();
@@ -519,6 +517,51 @@ class MoveCommandTest extends TestCase
 
         $output = $commandTester->getDisplay();
         $this->assertContains('The format: [:crash] failed with message: I am a crasher!', $output);
+    }
+
+    public function testByType()
+    {
+        $directory = $this->createDirectory([
+            'source' => [
+                'myfile.jpg' => file_get_contents(__DIR__ . '/../exif.jpg'),
+                'other' => file_get_contents(__DIR__ . '/../exif.jpg'),
+                'myvideo.3gp' => 'video',
+                'myaudio.au' => '',
+                'invalid.txt' => 'nope'
+            ],
+            'destination' => [
+
+            ]
+        ]);
+
+        $this->commandTester->execute([
+            'source' => $directory->url() . '/source',
+            'destination' => $directory->url() . '/destination',
+            '--only-type' => 'image',
+        ], ['interactive' => false]);
+
+        $this->assertFileExists($directory->url() . '/destination/myfile.jpg');
+        $this->assertFileExists($directory->url() . '/destination/other');
+        $this->assertFileExists($directory->url() . '/source/invalid.txt');
+        $this->assertFileExists($directory->url() . '/source/myvideo.3gp');
+        $this->assertFileExists($directory->url() . '/source/myaudio.au');
+
+        $this->commandTester->execute([
+            'source' => $directory->url() . '/source',
+            'destination' => $directory->url() . '/destination',
+            '--only-type' => 'video',
+        ], ['interactive' => false]);
+
+        $this->assertFileExists($directory->url() . '/destination/myvideo.3gp');
+        $this->assertFileExists($directory->url() . '/source/myaudio.au');
+
+        $this->commandTester->execute([
+            'source' => $directory->url() . '/source',
+            'destination' => $directory->url() . '/destination',
+            '--only-type' => 'audio',
+        ], ['interactive' => false]);
+
+        $this->assertFileExists($directory->url() . '/destination/myaudio.au');
     }
 
     private function createDirectory($structure)

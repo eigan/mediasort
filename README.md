@@ -3,10 +3,25 @@
 
 ## prettytree
 
+A batch rename tool for directories. 
+
 ### Example
+
+After an import from camera, and you want to put these files into a more logical position.
+
 ```
-prettyprint source destination --format=":year/:month/:date :time:ext" -n
+prettytree source/ destination/ --format=":year/:month/:date :time:ext"
 ```
+- `destination` is optional.
+- `:year`: Year created.
+- `:month`: Alias for `:monthnumeric - :monthstring`.
+- `:date`: Alias for `:year-:monthnumeric-:day`.
+- `:ext`: Always needed!
+- All date related information is extracted from exif if you have enabled `ext-exif`.
+- See more formats below.
+
+
+##### Current directory structure
 
 ```
 source
@@ -16,6 +31,11 @@ source
 ├── IMG_20170802_183634.jpg
 └── VID_20170709_121346.mp4
 ```
+
+
+##### After tool completed
+
+Files are moved into `destination/` (create hardlinks with `--link`)
 
 ```
 destination
@@ -32,7 +52,7 @@ destination
 
 
 ### Installation
-```
+```sh
 git clone https://gitlab.com/eigan/prettytree.git
 cd prettytree
 composer install --dev
@@ -88,6 +108,13 @@ mv prettytree.phar /usr/local/bin/prettytree
 Note: shortcuts cannot be combined, `-nv` will not work. This is a limitation of `symfony/console`.
 
 
+### TODO
+All of these before `1.0`
+
+- Show warning if missing :ext, or always append it.
+- More integration tests.
+- Show information when completed (num skipped, extensions encountered, etc).
+- `--dry-run`.
 
 ### Scenarios
 #### File name collision

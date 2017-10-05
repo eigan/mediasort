@@ -64,6 +64,12 @@ class Command extends SymfonyCommand
             list($source, $destination) = $this->resolvePaths($input);
 
             $this->formatter->setFormatter(':original', function ($path) use ($source) {
+                $extension = pathinfo($path, PATHINFO_EXTENSION);
+
+                if ($extension) {
+                    $path = $this->str_lreplace('.'.$extension, '', $path);
+                }
+
                 return str_replace($source, '', $path);
             });
         } catch (\InvalidArgumentException $e) {
@@ -233,7 +239,7 @@ class Command extends SymfonyCommand
 
     private function makeFileDestinationPath(string $destination, string $source, string $fileSourcePath, string $format)
     {
-        $mewPath = $this->formatter->format($format, $fileSourcePath);
+        $mewPath = $this->formatter->format($format . ':ext', $fileSourcePath);
 
         if ($mewPath[0] !== '/') {
             return $destination . '/'  . $mewPath;

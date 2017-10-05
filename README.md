@@ -16,7 +16,7 @@ prettytree source/ destination/ --format=":year/:month/:date :time:ext"
 - `:year`: Year created.
 - `:month`: Alias for `:monthnumeric - :monthstring`.
 - `:date`: Alias for `:year-:monthnumeric-:day`.
-- `:ext`: Always needed!
+- Extension will be appended
 - All date related information is extracted from exif if you have enabled `ext-exif`.
 - See more formats below.
 
@@ -67,7 +67,7 @@ mv prettytree.phar /usr/local/bin/prettytree
 #### Options
 ```
 --format            Reformat the path
-                    Example: --format=":year/:month/:name:ext"
+                    Example: --format=":year/:month/:name"
              
                     Possible formatters:
                         :original (original path)
@@ -81,7 +81,7 @@ mv prettytree.phar /usr/local/bin/prettytree
                         :hour
                         :minute
                         :second
-                        :ext
+                        :ext (always appended)
                         :name (original filename)
                         :dirname (name of parent directory)
                      
@@ -111,7 +111,6 @@ Note: shortcuts cannot be combined, `-nv` will not work. This is a limitation of
 ### TODO
 All of these before `1.0`
 
-- Show warning if missing :ext, or always append it.
 - More integration tests.
 - Show information when completed (num skipped, extensions encountered, etc).
 - `--dry-run`.

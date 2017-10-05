@@ -52,7 +52,7 @@ class MoveCommandTest extends TestCase
 
         $output = $this->execute([
             'source' => $directory->url() . '/source',
-            '--format' => ':day:ext'
+            '--format' => ':day'
         ], ['verbosity' => OutputInterface::VERBOSITY_VERBOSE]);
 
         $this->assertContains('Destination: ' . $directory->url() . '/source', $output);
@@ -160,7 +160,7 @@ class MoveCommandTest extends TestCase
             'source' => $directory->url() . '/source',
             'destination' => $directory->url() . '/destination',
 
-            '--format' => ':year/:month/:name:ext'
+            '--format' => ':year/:month/:name'
         ]);
 
         $destinationPath = $directory->url() . '/destination/2017/10 - October/myfile.jpg';
@@ -189,7 +189,7 @@ class MoveCommandTest extends TestCase
             'destination' => $directory->url() . '/destination',
 
             '-r' => true,
-            '--format' => ':year/:month/:day:ext'
+            '--format' => ':year/:month/:day'
         ], ['interactive' => false, 'verbosity' => OutputInterface::VERBOSITY_VERBOSE]);
 
         $destinationPath = $directory->url() . '/destination/2017/10 - October/'.date('d').'.jpg';
@@ -343,7 +343,7 @@ class MoveCommandTest extends TestCase
             'source' => $directory->url() . '/source',
             'destination' => $directory->url() . '/destination',
 
-            '--format' => ':name:ext',
+            '--format' => ':name',
             '-r' => true
         ]);
 
@@ -507,7 +507,7 @@ class MoveCommandTest extends TestCase
         $commandTester->execute([
             'source' => $directory->url() . '/source',
             'destination' => $directory->url() . '/destination',
-            '--format' => ':crash:ext',
+            '--format' => ':crash',
             '-v'
         ], ['interactive' => false]);
 

@@ -19,12 +19,7 @@ class OutputStyle extends SymfonyStyle
         $this->input = $input;
         $this->output = $output;
     }
-
-    public function error($message)
-    {
-        $this->text($message, 'ERROR', 'fg=white;bg=red', ' ', true);
-    }
-
+    
     public function linkPath($path)
     {
         return $this->writeln("   $path");

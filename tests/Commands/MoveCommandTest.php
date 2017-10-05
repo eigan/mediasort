@@ -564,6 +564,28 @@ class MoveCommandTest extends TestCase
         $this->assertFileExists($directory->url() . '/destination/myaudio.au');
     }
 
+    public function testDryRun()
+    {
+        $directory = $this->createDirectory([
+            'source' => [
+                'myfile.jpg' => 'content',
+                'other' => 'content2'
+            ],
+            'destination' => [
+
+            ]
+        ]);
+
+        $this->commandTester->execute([
+            'source' => $directory->url() . '/source',
+            'destination' => $directory->url() . '/destination',
+            '--dry-run' => true
+        ], ['interactive' => false]);
+
+        $this->assertFileExists($directory->url() . '/source/myfile.jpg');
+        $this->assertFileExists($directory->url() . '/source/other');
+    }
+
     private function createDirectory($structure)
     {
         return vfsStream::setup('test', null, $structure);

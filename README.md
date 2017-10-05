@@ -103,6 +103,9 @@ mv prettytree.phar /usr/local/bin/prettytree
 
 --ignore            Ignore certain file extensions
                     Example: --ignore="db,db-journal"
+                    
+--dry-run           Do not execute move/link
+    
 
 ```
 Note: shortcuts cannot be combined, `-nv` will not work. This is a limitation of `symfony/console`.
@@ -113,7 +116,6 @@ All of these before `1.0`
 
 - More integration tests.
 - Show information when completed (num skipped, extensions encountered, etc).
-- `--dry-run`.
 
 ### Scenarios
 #### File name collision

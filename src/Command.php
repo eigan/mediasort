@@ -42,6 +42,7 @@ class Command extends SymfonyCommand
         $this->addOption('recursive', 'r', InputOption::VALUE_NONE, 'Go recursive');
         $this->addOption('ignore', '', InputOption::VALUE_OPTIONAL, 'Ignore files with extension');
         $this->addOption('only-type', '', InputOption::VALUE_OPTIONAL, 'Only files with specific type');
+        $this->addOption('dry-run', '', InputOption::VALUE_NONE, 'Do not move the files');
     }
 
     protected function execute(InputInterface $input, OutputInterface $output)
@@ -50,14 +51,17 @@ class Command extends SymfonyCommand
         $shouldLink = $input->getOption('link');
         $recursive = $input->getOption('recursive');
         $ignore = $input->getOption('ignore');
+        $dryRyn = $input->getOption('dry-run');
 
         $io = new SymfonyStyle($input, $output);
 
         if ($output->isVerbose()) {
-            $io->writeln("Format: $format");
-            $io->writeln("Use hardlink:\t$shouldLink");
-            $io->writeln("Recursive: $recursive");
-            $io->writeln("Ignore: $ignore");
+            $output->writeln("Format: $format");
+            $output->writeln("Use hardlink:\t$shouldLink");
+            $output->writeln("Recursive: $recursive");
+            $output->writeln("Ignore: $ignore");
+
+            $output->writeln("Dry run: $dryRyn");
         }
 
         try {
@@ -130,11 +134,11 @@ class Command extends SymfonyCommand
             }
 
             if ($shouldLink) {
-                if ($io->confirm('Create hardlink?')) {
+                if ($io->confirm('Create hardlink?') && !$dryRyn) {
                     link($fileSourcePath, $fileDestinationPath);
                 }
             } else {
-                if ($io->confirm('Move?')) {
+                if ($io->confirm('Move file?') && !$dryRyn) {
                     rename($fileSourcePath, $fileDestinationPath);
                 }
             }

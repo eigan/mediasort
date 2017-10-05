@@ -7,7 +7,6 @@ use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
-use Symfony\Component\Console\Style\SymfonyStyle;
 
 class Command extends SymfonyCommand
 {
@@ -53,7 +52,7 @@ class Command extends SymfonyCommand
         $ignore = $input->getOption('ignore');
         $dryRyn = $input->getOption('dry-run');
 
-        $io = new SymfonyStyle($input, $output);
+        $io = new OutputStyle($input, $output);
 
         if ($output->isVerbose()) {
             $output->writeln("Format: $format");
@@ -94,10 +93,6 @@ class Command extends SymfonyCommand
                 $io->note('File: ' . $fileSourcePath);
             }
 
-            if ($input->isInteractive() && !$output->isVerbose()) {
-                $io->text("Source: $fileSourcePath");
-            }
-
             try {
                 $fileDestinationPath = $this->makeFileDestinationPath($destination, $source, $fileSourcePath, $format);
             } catch (\RuntimeException $e) {
@@ -130,7 +125,13 @@ class Command extends SymfonyCommand
             }
 
             if ($input->isInteractive()) {
-                $io->text("Destination: $fileDestinationPath");
+                if ($shouldLink) {
+                    $io->linkPath($fileSourcePath);
+                } else {
+                    $io->movePath($fileSourcePath);
+                }
+
+                $io->destinationPath($fileDestinationPath);
             }
 
             if ($shouldLink) {
@@ -342,6 +343,14 @@ class Command extends SymfonyCommand
         return $real;
     }
 
+    /**
+     * Replace last occurens of $search
+     *
+     * @param $search
+     * @param $replace
+     * @param $subject
+     * @return mixed
+     */
     private function str_lreplace($search, $replace, $subject)
     {
         $pos = strrpos($subject, $search);

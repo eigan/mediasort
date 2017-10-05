@@ -403,8 +403,6 @@ class MoveCommandTest extends TestCase
 
     /**
      * This doesnt work with vfs.. For know we just expect to crash
-     *
-     * @expectedException \PHPUnit\Framework\Error\Warning
      */
     public function testLink()
     {
@@ -417,6 +415,7 @@ class MoveCommandTest extends TestCase
             ]
         ]);
 
+        $this->expectException(\PHPUnit\Framework\Error\Warning::class);
         $this->expectExceptionMessage('link(): No such file or directory');
 
         $this->execute([
@@ -424,7 +423,7 @@ class MoveCommandTest extends TestCase
             'destination' => $directory->url() . '/destination',
 
             '--link' => true
-        ], ['verbosity' => OutputInterface::VERBOSITY_VERBOSE]);
+        ], ['verbosity' => OutputInterface::VERBOSITY_VERBOSE, 'interactive' => true], ['Yes']);
     }
 
     public function testVerboseMode()
@@ -472,7 +471,7 @@ class MoveCommandTest extends TestCase
             '-r' => true
         ], ['interactive' => true], ['Yes', 'N']);
 
-        $this->assertContains('Move? (yes/no) [yes]', $output);
+        $this->assertContains('Move file? (yes/no) [yes]', $output);
 
         // Answer: yes, move
         $this->assertFileExists($directory->url() . '/destination/myfile.jpg');

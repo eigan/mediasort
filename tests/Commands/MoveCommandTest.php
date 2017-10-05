@@ -252,14 +252,16 @@ class MoveCommandTest extends TestCase
             ]
         ]);
 
-        $this->execute([
+        $output = $this->execute([
             'source' => $directory->url() . '/source',
             'destination' => $directory->url() . '/destination',
 
-            '--ignore' => 'txt,php,'
-        ]);
+            '--ignore' => 'txt,php,',
+        ], ['verbosity' => OutputInterface::VERBOSITY_VERBOSE]);
 
         $root = $directory->url();
+
+        $this->assertRegExp('/Ignore:.+txt,php/', $output);
         $this->assertFileExists($root . '/source/otherfile.txt');
         $this->assertFileExists($root . '/source/myfile.php');
         $this->assertFileExists($root . '/source/empty');
@@ -449,7 +451,8 @@ class MoveCommandTest extends TestCase
 
         $this->assertContains('Source: ' . $directory->url() . '/source', $output);
         $this->assertContains('Destination: ' . $directory->url() . '/destination', $output);
-        $this->assertContains('File: ' . $directory->url() . '/source/myfile.jpg', $output);
+
+        $this->assertContains('- ' . $directory->url() . '/source/myfile.jpg', $output);
     }
 
     public function testInteractive()
@@ -506,8 +509,7 @@ class MoveCommandTest extends TestCase
         $commandTester->execute([
             'source' => $directory->url() . '/source',
             'destination' => $directory->url() . '/destination',
-            '--format' => ':crash',
-            '-v'
+            '--format' => ':crash'
         ], ['interactive' => false]);
 
         $this->assertFileExists($directory->url() . '/source/myfile.jpg');

@@ -20,12 +20,18 @@ class Command extends SymfonyCommand
      */
     private $rootPath;
 
+    /**
+     * @var Callable[][]
+     */
+    private $subscribers;
+
     public function __construct(FilenameFormatter $formatter, string $rootPath = '')
     {
         parent::__construct();
 
         $this->formatter = $formatter;
         $this->rootPath = $rootPath;
+        $this->subscribers = [];
     }
 
     protected function configure()
@@ -46,22 +52,16 @@ class Command extends SymfonyCommand
 
     protected function execute(InputInterface $input, OutputInterface $output)
     {
+        $io = new OutputStyle($input, $output);
+
+        $this->addStandardSubcribers($input, $output, $io);
+
+        $this->publish('start', [$input]);
+
         $format = $input->getOption('format');
         $shouldLink = $input->getOption('link');
         $recursive = $input->getOption('recursive');
-        $ignore = $input->getOption('ignore');
         $dryRyn = $input->getOption('dry-run');
-
-        $io = new OutputStyle($input, $output);
-
-        if ($output->isVerbose()) {
-            $output->writeln("Format: $format");
-            $output->writeln("Use hardlink:\t$shouldLink");
-            $output->writeln("Recursive: $recursive");
-            $output->writeln("Ignore: $ignore");
-
-            $output->writeln("Dry run: $dryRyn");
-        }
 
         try {
             list($source, $destination) = $this->resolvePaths($input);
@@ -80,18 +80,17 @@ class Command extends SymfonyCommand
             return;
         }
 
-        if ($output->isVerbose()) {
-            $io->section("Source: $source\nDestination: $destination");
-        }
+        $this->publish('paths.resolved', [
+            'source' => $source,
+            'destination' => $destination
+        ]);
 
         foreach ($this->iterate($source, $recursive) as $fileSourcePath) {
             if ($this->shouldSkip($fileSourcePath, $input)) {
                 continue;
             }
 
-            if ($output->isVerbose()) {
-                $io->note('File: ' . $fileSourcePath);
-            }
+            $this->publish('iterate.start', [$fileSourcePath]);
 
             try {
                 $fileDestinationPath = $this->makeFileDestinationPath($destination, $source, $fileSourcePath, $format);
@@ -100,20 +99,10 @@ class Command extends SymfonyCommand
                 continue;
             }
 
-            if ($output->isVerbose()) {
-                $io->text('Destination: ' . $fileDestinationPath);
-            }
-
             if (file_exists($fileDestinationPath)) {
-                if ($output->isVerbose()) {
-                    $io->text('Destination exists');
-                }
-
                 if ($this->isDuplicate($fileSourcePath, $fileDestinationPath)) {
-                    if ($output->isVerbose()) {
-                        $io->success('Skipped: Duplicate');
-                    }
-                        
+                    $this->publish('iterate.destinationDuplicate', [$fileSourcePath, $fileDestinationPath]);
+
                     continue;
                 }
 
@@ -124,26 +113,62 @@ class Command extends SymfonyCommand
                 mkdir(dirname($fileDestinationPath), 0777, true);
             }
 
-            if ($input->isInteractive()) {
-                if ($shouldLink) {
-                    $io->linkPath($fileSourcePath);
-                } else {
-                    $io->movePath($fileSourcePath);
-                }
-
-                $io->destinationPath($fileDestinationPath);
+            if ($shouldLink) {
+                $io->linkPath($fileSourcePath);
+            } else {
+                $io->movePath($fileSourcePath);
             }
+
+            $io->destinationPath($fileDestinationPath);
 
             if ($shouldLink) {
                 if ($io->confirm('Create hardlink?') && !$dryRyn) {
+                    $this->publish('iterate.link', [$fileSourcePath, $fileDestinationPath]);
                     link($fileSourcePath, $fileDestinationPath);
                 }
             } else {
                 if ($io->confirm('Move file?') && !$dryRyn) {
+                    $this->publish('iterate.move', [$fileSourcePath, $fileDestinationPath]);
                     rename($fileSourcePath, $fileDestinationPath);
                 }
             }
+
+            $this->publish('iterate.end', [$fileSourcePath, $fileDestinationPath]);
         }
+    }
+
+    private function addStandardSubcribers(InputInterface $input, OutputInterface $output, OutputStyle $io)
+    {
+        if ($output->isVerbose()) {
+            $this->addVerboseSubscriber($io);
+        }
+    }
+
+    private function addVerboseSubscriber(OutputStyle $io)
+    {
+        $verboseSubscriber = new Subscribers\VerboseSubscriber($io);
+
+        foreach ($verboseSubscriber->subscribe() as $key => $callback) {
+            $this->subscribe($key, $callback);
+        }
+    }
+
+    private function publish($key, $parts)
+    {
+        if (isset($this->subscribers[$key])) {
+            foreach ($this->subscribers[$key] as $subscriber) {
+                call_user_func_array($subscriber, $parts);
+            }
+        }
+    }
+
+    public function subscribe($key, callable $callback)
+    {
+        if (isset($this->subscribers[$key]) === false) {
+            $this->subscribers[$key] = [];
+        }
+
+        $this->subscribers[$key][] = $callback;
     }
 
     protected function resolvePaths(InputInterface $input): array

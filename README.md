@@ -10,7 +10,7 @@ A batch rename tool for directories.
 After an import from camera, and you want to put these files into a more logical position.
 
 ```
-prettytree source/ destination/ --format=":year/:month/:date :time:ext"
+prettytree source/ destination/ --format=":year/:month/:date :time"
 ```
 - `destination` is optional.
 - `:year`: Year created.

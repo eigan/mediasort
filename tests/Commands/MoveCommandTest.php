@@ -3,6 +3,7 @@
 namespace Eig\PrettyTree\Tests\Commands;
 
 use Eig\PrettyTree\Application;
+use Eig\PrettyTree\Command;
 use org\bovigo\vfs\vfsStream;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Console\Output\OutputInterface;
@@ -42,6 +43,25 @@ class MoveCommandTest extends TestCase
         $this->assertContains('Path ['.$directory->url() . '/source2] does not exist', $output);
     }
 
+    public function testDestinationNotExists()
+    {
+        $directory = $this->createDirectory([
+            'source' => [
+                'myfile.jpg' => 'myfile'
+            ],
+            'destination' => [
+
+            ]
+        ]);
+
+        $output = $this->execute([
+            'source' => $directory->url() . '/source',
+            'destination' => $directory->url() . '/destination2',
+        ]);
+
+        $this->assertContains('Path ['.$directory->url() . '/destination2] does not exist', $output);
+    }
+
     public function testNoDestinationInput()
     {
         $directory = $this->createDirectory([
@@ -59,7 +79,7 @@ class MoveCommandTest extends TestCase
         $this->assertFileExists($directory->url() . '/source/' . date('d') . '.jpg');
     }
 
-    public function testResolve()
+    public function testResolveRelative()
     {
         $root = $this->createDirectory([
             'home' => [
@@ -93,7 +113,7 @@ class MoveCommandTest extends TestCase
         $this->assertEquals(0, $this->commandTester->getStatusCode());
     }
 
-    public function testResolveWithDots()
+    public function testResolveRelativeWithDots()
     {
         $root = $this->createDirectory([
             'home' => [
@@ -126,23 +146,47 @@ class MoveCommandTest extends TestCase
         $this->assertFileNotExists($root->url() . '/home/einar/pictures/source/myfile.jpg');
     }
 
-    public function testDestinationNotExists()
+    public function testResolveHomeDir()
     {
-        $directory = $this->createDirectory([
-            'source' => [
-                'myfile.jpg' => 'myfile'
-            ],
-            'destination' => [
+        if (function_exists('posix_getuid') === false) {
+            $this->markTestSkipped();
+        }
 
-            ]
-        ]);
+        $homeInfo = posix_getpwuid(posix_getuid());
+
+        $homeInfo['dir'] = trim($homeInfo['dir'], '/');
+
+        $dir = explode('/', $homeInfo['dir']);
+
+        $result = [];
+        $structure = [];
+
+        foreach ($dir as $dir2) {
+            foreach ($result as $key => &$derp) {
+                if ($key != $dir2) {
+                    unset($result[$key]);
+                }
+            }
+            $result[$dir2] = [];
+
+            $structure[$dir2] = &$result;
+
+            $result = &$result[$dir2];
+        }
+
+        $result = [
+            'source' => [],
+            'destination' => []
+        ];
+
+        vfsStream::setup(reset($dir), null, reset($structure[reset($dir)]));
 
         $output = $this->execute([
-            'source' => $directory->url() . '/source',
-            'destination' => $directory->url() . '/destination2',
-        ]);
+            'source' => 'vfs://~/source',
+            'destination' => 'vfs://~/destination'
+        ], ['verbosity' => OutputInterface::VERBOSITY_VERBOSE]);
 
-        $this->assertContains('Path ['.$directory->url() . '/destination2] does not exist', $output);
+        $this->assertContains($homeInfo['dir'], $output);
     }
 
     public function testMoveSingleFile()
@@ -360,49 +404,6 @@ class MoveCommandTest extends TestCase
         $this->assertFileExists($root . '/destination/noext (1)');
     }
 
-    public function testHomeDirResolve()
-    {
-        if (function_exists('posix_getuid') === false) {
-            $this->markTestSkipped();
-        }
-
-        $homeInfo = posix_getpwuid(posix_getuid());
-
-        $homeInfo['dir'] = trim($homeInfo['dir'], '/');
-
-        $dir = explode('/', $homeInfo['dir']);
-
-        $result = [];
-        $structure = [];
-
-        foreach ($dir as $dir2) {
-            foreach ($result as $key => &$derp) {
-                if ($key != $dir2) {
-                    unset($result[$key]);
-                }
-            }
-            $result[$dir2] = [];
-
-            $structure[$dir2] = &$result;
-
-            $result = &$result[$dir2];
-        }
-
-        $result = [
-            'source' => [],
-            'destination' => []
-        ];
-
-        vfsStream::setup(reset($dir), null, reset($structure[reset($dir)]));
-
-        $output = $this->execute([
-            'source' => 'vfs://~/source',
-            'destination' => 'vfs://~/destination'
-        ], ['verbosity' => OutputInterface::VERBOSITY_VERBOSE]);
-
-        $this->assertContains($homeInfo['dir'], $output);
-    }
-
     /**
      * This doesnt work with vfs.. For know we just expect to crash
      */
@@ -484,7 +485,7 @@ class MoveCommandTest extends TestCase
         $this->assertContains('content2', file_get_contents($directory->url() . '/source/tobeskipped.jpg'));
     }
 
-    public function testFailingFormat()
+    public function testFailingFilenameFormatPattern()
     {
         $application = new Application();
 
@@ -585,6 +586,241 @@ class MoveCommandTest extends TestCase
 
         $this->assertFileExists($directory->url() . '/source/myfile.jpg');
         $this->assertFileExists($directory->url() . '/source/other');
+    }
+
+    public function testSourceFileRemovedAfterStart()
+    {
+        $application = new Application();
+
+        /** @var Command $command */
+        $command = $application->find('move');
+
+        $commandTester = new CommandTester($command);
+
+        $directory = $this->createDirectory([
+            'source' => [
+                'myfile.jpg' => 'content',
+                'other' => 'content2'
+            ],
+            'destination' => [
+
+            ]
+        ]);
+
+        $command->subscribe('iterate.start', function (string $sourceFilePath) use ($directory) {
+            if ($sourceFilePath === $directory->url() . '/source/myfile.jpg') {
+                unlink($sourceFilePath);
+            }
+        });
+
+        $commandTester->execute([
+            'source' => $directory->url() . '/source',
+            'destination' => $directory->url() . '/destination',
+        ], ['interactive' => false]);
+
+        $this->assertFileExists($directory->url() . '/destination/other');
+    }
+
+    public function testDestinationNotReadable()
+    {
+        $directory = $this->createDirectory([
+            'source' => [
+                    'myfile.jpg' => 'content',
+            ],
+            'destination' => [
+            ]
+        ]);
+
+        chmod($directory->url() . '/destination/', 0500);
+
+        $output = $this->execute([
+            'source' => $directory->url() . '/source',
+            'destination' => $directory->url() . '/destination',
+        ]);
+
+        $this->assertFileExists($directory->url() . '/source/myfile.jpg');
+    }
+
+    public function testDestinationNotWritable()
+    {
+        $directory = $this->createDirectory([
+            'source' => [
+                'myfile.jpg' => 'content',
+            ],
+            'destination' => [
+            ]
+        ]);
+
+        chmod($directory->url() . '/destination/', 0500);
+
+        $output = $this->execute([
+            'source' => $directory->url() . '/source',
+            'destination' => $directory->url() . '/destination',
+        ]);
+
+        $this->assertFileExists($directory->url() . '/source/myfile.jpg');
+    }
+
+    public function testDestinationFileNotWritable()
+    {
+        $directory = $this->createDirectory([
+            'source' => [
+                'nested' => [
+                    'myfile.jpg' => 'content',
+                ],
+
+                'sub' => [
+                    'other' => 'other'
+                ]
+            ],
+            'destination' => [
+                'nested' => [
+
+                ]
+            ]
+        ]);
+
+        chmod($directory->url() . '/destination/nested', 0500);
+
+        $output = $this->execute([
+            'source' => $directory->url() . '/source',
+            'destination' => $directory->url() . '/destination',
+            '-r' => true
+        ]);
+
+        $this->assertFileExists($directory->url() . '/source/nested/myfile.jpg');
+        $this->assertFileExists($directory->url() . '/destination/sub/other');
+    }
+
+    public function testDestinationSubDirectoryNotWritable()
+    {
+        $directory = $this->createDirectory([
+            'source' => [
+                'nested' => [
+                    'nested' => [
+                        'myfile.jpg' => 'content',
+                    ]
+                ],
+
+                'sub' => [
+                    'other' => 'other'
+                ]
+            ],
+            'destination' => [
+                'nested' => [
+
+                ]
+            ]
+        ]);
+
+        chmod($directory->url() . '/destination/nested', 0500);
+
+        $output = $this->execute([
+            'source' => $directory->url() . '/source',
+            'destination' => $directory->url() . '/destination',
+            '-r' => true
+        ], ['verbosity' => OutputInterface::VERBOSITY_VERBOSE]);
+
+        $this->assertContains('Skipped: Not writable ('.$directory->url().'/destination/nested/nested/myfile.jpg)', $output);
+        $this->assertFileExists($directory->url() . '/source/nested/nested/myfile.jpg');
+        $this->assertFileExists($directory->url() . '/destination/sub/other');
+    }
+
+    public function testSourceNotReadable()
+    {
+        $directory = $this->createDirectory([
+            'source' => [
+                'myfile.jpg' => 'content',
+            ],
+            'destination' => [
+            ]
+        ]);
+
+        chmod($directory->url() . '/source/', 0200);
+
+        $output = $this->execute([
+            'source' => $directory->url() . '/source',
+            'destination' => $directory->url() . '/destination',
+        ]);
+
+        $this->assertContains('Source is not readable', $output);
+        $this->assertFileExists($directory->url() . '/source/myfile.jpg');
+    }
+
+    public function testNestedSourceDirectoryNotReadable()
+    {
+        $directory = $this->createDirectory([
+            'source' => [
+                'nested' => [
+                    'myfile.jpg' => 'content',
+                ]
+            ],
+            'destination' => [
+
+            ]
+        ]);
+
+        chmod($directory->url() . '/source/nested', 0200);
+
+        $output = $this->execute([
+            'source' => $directory->url() . '/source',
+            'destination' => $directory->url() . '/destination',
+            '-r' => true
+        ]);
+
+        $this->assertFileExists($directory->url() . '/source/nested/myfile.jpg');
+    }
+
+    public function testNoSourceFileNotReadable()
+    {
+        $directory = $this->createDirectory([
+            'source' => [
+                'nested' => [
+                    'myfile.jpg' => 'content',
+                ]
+            ],
+            'destination' => [
+
+            ]
+        ]);
+
+        chmod($directory->url() . '/source/nested/myfile.jpg', 0200);
+
+        $output = $this->execute([
+            'source' => $directory->url() . '/source',
+            'destination' => $directory->url() . '/destination',
+            '-r' => true
+        ]);
+
+        $this->assertFileExists($directory->url() . '/source/nested/myfile.jpg');
+    }
+
+    public function testCannotRenameAcrossWrapperTypes()
+    {
+        // Should stop completely
+        $directory = $this->createDirectory([
+            'source' => [
+                'myfile.jpg' => 'content',
+                'other' => 'content2'
+            ],
+            'destination' => [
+
+            ]
+        ]);
+
+        $output = $this->execute([
+            'source' => __DIR__ . '/../',
+            'destination' => $directory->url() . '/destination',
+        ]);
+
+        $this->assertContains('PrettyTree doesn\'t support operations across wrapper types', $output);
+
+        $output = $this->execute([
+            'destination' => __DIR__ . '/../',
+            'source' => $directory->url() . '/destination',
+        ]);
+
+        $this->assertContains('PrettyTree doesn\'t support operations across wrapper types', $output);
     }
 
     private function createDirectory($structure)

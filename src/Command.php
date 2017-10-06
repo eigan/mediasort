@@ -113,6 +113,16 @@ class Command extends SymfonyCommand
                 mkdir(dirname($fileDestinationPath), 0777, true);
             }
 
+            if (is_writable(dirname($fileDestinationPath)) === false) {
+                $this->publish('iterate.destinationNotWritable', [$fileDestinationPath]);
+                continue;
+            }
+
+            if (is_readable($fileSourcePath) === false) {
+                $this->publish('iterate.sourceDisappeared', [$fileSourcePath]);
+                continue;
+            }
+
             if ($shouldLink) {
                 $io->linkPath($fileSourcePath);
             } else {
@@ -129,6 +139,7 @@ class Command extends SymfonyCommand
             } else {
                 if ($io->confirm('Move file?') && !$dryRyn) {
                     $this->publish('iterate.move', [$fileSourcePath, $fileDestinationPath]);
+
                     rename($fileSourcePath, $fileDestinationPath);
                 }
             }
@@ -175,10 +186,32 @@ class Command extends SymfonyCommand
     {
         $destination = $input->getArgument('destination') ?: $input->getArgument('source');
 
-        return [
-          $this->realpath($input->getArgument('source')),
-          $this->realpath($destination)
-        ];
+        $source = $this->realpath($input->getArgument('source'));
+        $destination = $this->realpath($destination);
+
+        $sourceComponents = parse_url($source);
+        $destinationComponents = parse_url($destination);
+
+        if (
+            (isset($sourceComponents['scheme']) && !isset($destinationComponents['scheme'])) ||
+            (isset($destinationComponents['scheme']) && !isset($sourceComponents['scheme'])) ||
+            (
+                isset($sourceComponents['scheme'], $destinationComponents['scheme']) &&
+                $sourceComponents['scheme'] !== $destinationComponents['scheme']
+            )
+        ) {
+            throw new \InvalidArgumentException("PrettyTree doesn't support operations across wrapper types");
+        }
+
+        if (is_readable($source) === false) {
+            throw new \InvalidArgumentException('Source is not readable');
+        }
+
+        if (is_writable($destination) === false) {
+            throw new \InvalidArgumentException('Destination is not writable');
+        }
+
+        return [$source, $destination];
     }
 
     private function shouldSkip($fileSourcePath, InputInterface $input)
@@ -186,6 +219,7 @@ class Command extends SymfonyCommand
         $ignore = $input->getOption('ignore');
         $only = $input->getOption('only');
         $type = $input->getOption('only-type');
+        $shouldLink = $input->getOption('link');
 
         if (is_dir($fileSourcePath)) {
             return true;
@@ -228,6 +262,10 @@ class Command extends SymfonyCommand
                 }
             }
 
+            return true;
+        }
+
+        if (is_readable($fileSourcePath) === false) {
             return true;
         }
 
@@ -320,6 +358,10 @@ class Command extends SymfonyCommand
     {
         $paths = [];
         $dirs = [];
+
+        if (is_readable($root) === false) {
+            return;
+        }
 
         foreach (new \DirectoryIterator($root) as $fileName => $file) {
             $pathname = $file->getPathname();

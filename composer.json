@@ -27,7 +27,7 @@
   "autoload": {
       "psr-4": {
           "Eig\\PrettyTree\\": "src/",
-          "Eig\\PrettyTree\\Tests\\": "tests/Eig"
+          "Eig\\PrettyTree\\Tests\\": "tests"
       }
   }
 }

@@ -1,6 +1,6 @@
 <?php
 
-namespace Eig\PrettyTree\Tests\Commands;
+namespace Eig\PrettyTree\Tests\Integration;
 
 use Eig\PrettyTree\Application;
 use Eig\PrettyTree\Command;
@@ -9,7 +9,7 @@ use PHPUnit\Framework\TestCase;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Tester\CommandTester;
 
-class MoveCommandTest extends TestCase
+class CommandTest extends TestCase
 {
     /**
      * @var CommandTester

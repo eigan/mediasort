@@ -13,12 +13,6 @@ After an import from camera, and you want to put these files into a more logical
 prettytree source/ destination/
 ```
 - `destination` is optional.
-- `:year`: Year created.
-- `:month`: Alias for `:monthnumeric - :monthstring`.
-- `:date`: Alias for `:year-:monthnumeric-:day`.
-- Extension will be appended
-- All date related information is extracted from exif if you have enabled `ext-exif`.
-- See more formats below.
 
 
 ##### Current directory structure
@@ -81,7 +75,7 @@ mv prettytree.phar /usr/local/bin/prettytree
                         :hour
                         :minute
                         :second
-                        :ext (always appended)
+                        :ext (not needed, always appended)
                         :name (original filename)
                         :dirname (name of original parent directory)
                      

@@ -109,15 +109,6 @@ class Command extends SymfonyCommand
                 $fileDestinationPath = $this->incrementPath($fileDestinationPath);
             }
 
-            if (file_exists(dirname($fileDestinationPath)) === false) {
-                mkdir(dirname($fileDestinationPath), 0777, true);
-            }
-
-            if (is_writable(dirname($fileDestinationPath)) === false) {
-                $this->publish('iterate.destinationNotWritable', [$fileDestinationPath]);
-                continue;
-            }
-
             if (is_readable($fileSourcePath) === false) {
                 $this->publish('iterate.sourceDisappeared', [$fileSourcePath]);
                 continue;
@@ -134,13 +125,22 @@ class Command extends SymfonyCommand
             if ($shouldLink) {
                 if ($io->confirm('Create hardlink?') && !$dryRyn) {
                     $this->publish('iterate.link', [$fileSourcePath, $fileDestinationPath]);
-                    link($fileSourcePath, $fileDestinationPath);
+
+                    $destinationIsOk = $this->mkdir($fileDestinationPath);
+
+                    if($destinationIsOk) {
+                        link($fileSourcePath, $fileDestinationPath);
+                    }
                 }
             } else {
                 if ($io->confirm('Move file?') && !$dryRyn) {
                     $this->publish('iterate.move', [$fileSourcePath, $fileDestinationPath]);
 
-                    rename($fileSourcePath, $fileDestinationPath);
+                    $destinationIsOk = $this->mkdir($fileDestinationPath);
+
+                    if($destinationIsOk) {
+                        rename($fileSourcePath, $fileDestinationPath);
+                    }
                 }
             }
 
@@ -270,6 +270,21 @@ class Command extends SymfonyCommand
         }
 
         return false;
+    }
+
+    private function mkdir(string $fileDestinationPath): bool
+    {
+        if (file_exists(dirname($fileDestinationPath)) === false) {
+            mkdir(dirname($fileDestinationPath), 0777, true);
+        }
+
+        if (is_writable(dirname($fileDestinationPath)) === false) {
+            $this->publish('iterate.destinationNotWritable', [$fileDestinationPath]);
+
+            return false;
+        }
+
+        return true;
     }
 
     private function getTypesExtensions(array $types)

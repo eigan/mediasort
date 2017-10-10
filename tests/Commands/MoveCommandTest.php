@@ -461,7 +461,9 @@ class MoveCommandTest extends TestCase
         $directory = $this->createDirectory([
             'source' => [
                 'myfile.jpg' => 'content',
-                'tobeskipped.jpg' => 'content2'
+                'skip' => [
+                    'tobeskipped.jpg' => 'content2'
+                ]
             ],
             'destination' => [
 
@@ -481,8 +483,9 @@ class MoveCommandTest extends TestCase
         $this->assertFileExists($directory->url() . '/destination/myfile.jpg');
 
         // Answer: N, Left unchanged
-        $this->assertFileNotExists($directory->url() . '/destination/tobeskipped.jpg');
-        $this->assertContains('content2', file_get_contents($directory->url() . '/source/tobeskipped.jpg'));
+        $this->assertFileNotExists($directory->url() . '/destination/skip/tobeskipped.jpg');
+        $this->assertDirectoryNotExists($directory->url() . '/destination/skip');
+        $this->assertContains('content2', file_get_contents($directory->url() . '/source/skip/tobeskipped.jpg'));
     }
 
     public function testFailingFilenameFormatPattern()
@@ -571,7 +574,9 @@ class MoveCommandTest extends TestCase
         $directory = $this->createDirectory([
             'source' => [
                 'myfile.jpg' => 'content',
-                'other' => 'content2'
+                'nested' => [
+                    'other' => 'content2'
+                ]
             ],
             'destination' => [
 
@@ -581,11 +586,13 @@ class MoveCommandTest extends TestCase
         $this->commandTester->execute([
             'source' => $directory->url() . '/source',
             'destination' => $directory->url() . '/destination',
-            '--dry-run' => true
+            '--dry-run' => true,
+            '-r' => true,
         ], ['interactive' => false]);
 
         $this->assertFileExists($directory->url() . '/source/myfile.jpg');
-        $this->assertFileExists($directory->url() . '/source/other');
+        $this->assertFileExists($directory->url() . '/source/nested/other');
+        $this->assertDirectoryNotExists($directory->url() . '/destination/nested');
     }
 
     public function testSourceFileRemovedAfterStart()

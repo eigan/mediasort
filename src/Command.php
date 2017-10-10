@@ -34,6 +34,21 @@ class Command extends SymfonyCommand
         $this->subscribers = [];
     }
 
+    /**
+     * Subscribe to the actions emitted
+     *
+     * @param $key
+     * @param callable $callback
+     */
+    public function subscribe($key, callable $callback)
+    {
+        if (isset($this->subscribers[$key]) === false) {
+            $this->subscribers[$key] = [];
+        }
+
+        $this->subscribers[$key][] = $callback;
+    }
+
     protected function configure()
     {
         $this->setName('move');
@@ -46,7 +61,7 @@ class Command extends SymfonyCommand
         $this->addOption('link', '', InputOption::VALUE_NONE, 'Use hardlink instead of moving');
         $this->addOption('recursive', 'r', InputOption::VALUE_NONE, 'Go recursive');
         $this->addOption('ignore', '', InputOption::VALUE_OPTIONAL, 'Ignore files with extension');
-        $this->addOption('only-type', '', InputOption::VALUE_OPTIONAL, 'Only files with specific type');
+        $this->addOption('only-type', '', InputOption::VALUE_REQUIRED, 'Only files with specific type', 'audio,image,video');
         $this->addOption('dry-run', '', InputOption::VALUE_NONE, 'Do not move the files');
     }
 
@@ -62,6 +77,11 @@ class Command extends SymfonyCommand
         $shouldLink = $input->getOption('link');
         $recursive = $input->getOption('recursive');
         $dryRyn = $input->getOption('dry-run');
+
+        if (empty($type = $input->getOption('only-type'))) {
+            $io->error('Missing value for --only-type');
+            return;
+        }
 
         try {
             list($source, $destination) = $this->resolvePaths($input);
@@ -173,15 +193,6 @@ class Command extends SymfonyCommand
         }
     }
 
-    public function subscribe($key, callable $callback)
-    {
-        if (isset($this->subscribers[$key]) === false) {
-            $this->subscribers[$key] = [];
-        }
-
-        $this->subscribers[$key][] = $callback;
-    }
-
     protected function resolvePaths(InputInterface $input): array
     {
         $destination = $input->getArgument('destination') ?: $input->getArgument('source');
@@ -219,7 +230,6 @@ class Command extends SymfonyCommand
         $ignore = $input->getOption('ignore');
         $only = $input->getOption('only');
         $type = $input->getOption('only-type');
-        $shouldLink = $input->getOption('link');
 
         if (is_dir($fileSourcePath)) {
             return true;
@@ -247,29 +257,27 @@ class Command extends SymfonyCommand
             }
         }
 
-        if ($type) {
-            $input = explode(',', $type);
-
-            $extensions = $this->getTypesExtensions($input);
-
-            if (in_array(pathinfo($fileSourcePath, PATHINFO_EXTENSION), $extensions, true)) {
-                return false;
-            }
-
-            foreach ($input as $allowedType) {
-                if (strpos(mime_content_type($fileSourcePath), $allowedType) !== false) {
-                    return false;
-                }
-            }
-
-            return true;
-        }
-
         if (is_readable($fileSourcePath) === false) {
             return true;
         }
 
-        return false;
+        $types = explode(',', $type);
+
+        $extensions = $this->getTypesExtensions($types);
+
+        $extension = strtolower(pathinfo($fileSourcePath, PATHINFO_EXTENSION));
+
+        if (in_array($extension, $extensions, true)) {
+            return false;
+        }
+
+        foreach ($types as $allowedType) {
+            if (strpos(mime_content_type($fileSourcePath), $allowedType) !== false) {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     private function mkdir(string $fileDestinationPath): bool
@@ -294,25 +302,40 @@ class Command extends SymfonyCommand
         foreach ($types as $type) {
             switch ($type) {
                 case 'image':
-                    $allowed += ['bmp', 'cgm', 'g3', 'gif', 'ief', 'jpeg', 'jpg', 'jpe', 'ktx', 'png', 'btif', 'sgi',
-                                 'svg', 'svgz', 'tiff', 'tif', 'psd', 'uvi', 'uvvi', 'uvg', 'uvvg', 'sub', 'djvu',
-                                 'djv', 'dwg', 'dxf', 'fbs', 'fpx', 'fst', 'mmr', 'rlc', 'mdi', 'wdp', 'npx', 'wbmp',
-                                 'xif', 'webp', '3ds', 'ras', 'cmx', 'fh', 'fhc', 'fh4', 'fh5', 'fh7', 'ico', 'sid',
-                                 'pcx', 'pic', 'pct', 'pnm', 'pbm', 'pgm', 'ppm', 'rgb', 'tga', 'xbm', 'xpm', 'xwd'];
+                    $allowed = array_merge(
+                        [
+                            'bmp', 'cgm', 'g3', 'gif', 'ief', 'jpeg', 'jpg', 'jpe', 'ktx', 'png', 'btif', 'sgi',
+                            'svg', 'svgz', 'tiff', 'tif', 'psd', 'uvi', 'uvvi', 'uvg', 'uvvg', 'sub', 'djvu',
+                            'djv', 'dwg', 'dxf', 'fbs', 'fpx', 'fst', 'mmr', 'rlc', 'mdi', 'wdp', 'npx', 'wbmp',
+                            'xif', 'webp', '3ds', 'ras', 'cmx', 'fh', 'fhc', 'fh4', 'fh5', 'fh7', 'ico', 'sid',
+                            'pcx', 'pic', 'pct', 'pnm', 'pbm', 'pgm', 'ppm', 'rgb', 'tga', 'xbm', 'xpm', 'xwd'
+                        ],
+                        $allowed
+                    );
                     break;
                 case 'video':
-                    $allowed += ['3gp', '3g2', 'h261', 'h263', 'h264', 'jpgv', 'jpm', 'jpgm', 'mj2', 'mjp2', 'mp4',
-                                 'mp4v', 'mpg4', 'mpeg', 'mpg', 'mpe', 'm1v', 'm2v', 'ogv', 'qt', 'mov', 'uvh', 'uvvh',
-                                 'uvm', 'uvvm', 'uvp', 'uvvp', 'uvs', 'uvvs', 'uvv', 'uvvv', 'dvb', 'fvt', 'mxu', 'm4u',
-                                 'pyv', 'uvu', 'uvvu', 'viv', 'webm', 'f4v', 'fli', 'flv', 'm4v', 'mkv', 'mk3d', 'mks',
-                                 'mng', 'asf', 'asx', 'vob', 'wm', 'wmv', 'wmx', 'wvx', 'avi', 'movie', 'smv'];
+                    $allowed = array_merge(
+                        [
+                            '3gp', '3g2', 'h261', 'h263', 'h264', 'jpgv', 'jpm', 'jpgm', 'mj2', 'mjp2', 'mp4',
+                            'mp4v', 'mpg4', 'mpeg', 'mpg', 'mpe', 'm1v', 'm2v', 'ogv', 'qt', 'mov', 'uvh', 'uvvh',
+                            'uvm', 'uvvm', 'uvp', 'uvvp', 'uvs', 'uvvs', 'uvv', 'uvvv', 'dvb', 'fvt', 'mxu', 'm4u',
+                            'pyv', 'uvu', 'uvvu', 'viv', 'webm', 'f4v', 'fli', 'flv', 'm4v', 'mkv', 'mk3d', 'mks',
+                            'mng', 'asf', 'asx', 'vob', 'wm', 'wmv', 'wmx', 'wvx', 'avi', 'movie', 'smv'
+                        ],
+                        $allowed
+                    );
                     break;
                 case 'audio':
-                    $allowed += ['adp', 'au', 'snd', 'mid', 'midi', 'kar', 'rmi', 'mp4a', 'mpga', 'mp2', 'mp2a', 'mp3',
-                                 'm2a', 'm3a', 'oga', 'ogg', 'spx', 's3m', 'sil', 'uva', 'uvva', 'eol', 'dra', 'dts',
-                                 'dtshd', 'lvp', 'pya', 'ecelp4800', 'ecelp7470', 'ecelp9600', 'rip', 'weba', 'aac',
-                                 'aif', 'aiff', 'aifc', 'caf', 'flac', 'mka', 'm3u', 'wax', 'wma', 'ram', 'ra', 'rmp',
-                                 'wav', 'xm'];
+                    $allowed = array_merge(
+                        [
+                            'adp', 'au', 'snd', 'mid', 'midi', 'kar', 'rmi', 'mp4a', 'mpga', 'mp2', 'mp2a', 'mp3',
+                             'm2a', 'm3a', 'oga', 'ogg', 'spx', 's3m', 'sil', 'uva', 'uvva', 'eol', 'dra', 'dts',
+                             'dtshd', 'lvp', 'pya', 'ecelp4800', 'ecelp7470', 'ecelp9600', 'rip', 'weba', 'aac',
+                             'aif', 'aiff', 'aifc', 'caf', 'flac', 'mka', 'm3u', 'wax', 'wma', 'ram', 'ra', 'rmp',
+                             'wav', 'xm'
+                        ],
+                        $allowed
+                    );
                     break;
             }
         }
@@ -351,11 +374,7 @@ class Command extends SymfonyCommand
 
         $extension = pathinfo($fileDestinationPath, PATHINFO_EXTENSION);
 
-        if ($extension) {
-            $fileDestinationPath = $this->str_lreplace('.'.$extension, " (1).$extension", $fileDestinationPath);
-        } else {
-            $fileDestinationPath .= ' (1)';
-        }
+        $fileDestinationPath = $this->str_lreplace('.'.$extension, " (1).$extension", $fileDestinationPath);
 
         do {
             $fileDestinationPath = $increment($fileDestinationPath, ++$index);

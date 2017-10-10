@@ -347,7 +347,8 @@ class CommandTest extends TestCase
             'source' => [
                 'myfile.jpg' => 'content',
                 'sub' => [
-                    'subfile.txt' => 'content'
+                    'subfile.txt' => 'content',
+                    'myimage.jpg' => 'image'
                 ]
             ],
             'destination' => [
@@ -363,7 +364,8 @@ class CommandTest extends TestCase
         ]);
 
         $root = $directory->url();
-        $this->assertFileExists($root . '/destination/sub/subfile.txt');
+        $this->assertFileNotExists($root . '/destination/sub/subfile.txt');
+        $this->assertFileExists($root . '/destination/sub/myimage.jpg');
     }
 
     public function testIncrementHit()
@@ -400,8 +402,8 @@ class CommandTest extends TestCase
         $this->assertFileExists($root . '/destination/myfile (2).jpg');
         $this->assertFileExists($root . '/destination/myFile (1).jpg');
         $this->assertFileExists($root . '/destination/myFile (1) (1).jpg');
-        $this->assertFileExists($root . '/destination/noext');
-        $this->assertFileExists($root . '/destination/noext (1)');
+        $this->assertFileNotExists($root . '/destination/noext');
+        $this->assertFileNotExists($root . '/destination/noext (1)');
     }
 
     /**
@@ -567,6 +569,14 @@ class CommandTest extends TestCase
         ], ['interactive' => false]);
 
         $this->assertFileExists($directory->url() . '/destination/myaudio.au');
+
+         $this->commandTester->execute([
+            'source' => $directory->url() . '/source',
+            'destination' => $directory->url() . '/destination',
+            '--only-type' => '',
+        ], ['interactive' => false]);
+
+        $this->assertContains("Missing value for --only-type", $this->commandTester->getDisplay());
     }
 
     public function testDryRun()
@@ -607,7 +617,7 @@ class CommandTest extends TestCase
         $directory = $this->createDirectory([
             'source' => [
                 'myfile.jpg' => 'content',
-                'other' => 'content2'
+                'other.jpg' => 'content2'
             ],
             'destination' => [
 
@@ -625,7 +635,7 @@ class CommandTest extends TestCase
             'destination' => $directory->url() . '/destination',
         ], ['interactive' => false]);
 
-        $this->assertFileExists($directory->url() . '/destination/other');
+        $this->assertFileExists($directory->url() . '/destination/other.jpg');
     }
 
     public function testDestinationNotReadable()
@@ -677,7 +687,7 @@ class CommandTest extends TestCase
                 ],
 
                 'sub' => [
-                    'other' => 'other'
+                    'other.jpg' => 'other'
                 ]
             ],
             'destination' => [
@@ -696,7 +706,7 @@ class CommandTest extends TestCase
         ]);
 
         $this->assertFileExists($directory->url() . '/source/nested/myfile.jpg');
-        $this->assertFileExists($directory->url() . '/destination/sub/other');
+        $this->assertFileExists($directory->url() . '/destination/sub/other.jpg');
     }
 
     public function testDestinationSubDirectoryNotWritable()
@@ -710,7 +720,7 @@ class CommandTest extends TestCase
                 ],
 
                 'sub' => [
-                    'other' => 'other'
+                    'other.jpg' => 'other'
                 ]
             ],
             'destination' => [
@@ -730,7 +740,7 @@ class CommandTest extends TestCase
 
         $this->assertContains('Skipped: Not writable ('.$directory->url().'/destination/nested/nested/myfile.jpg)', $output);
         $this->assertFileExists($directory->url() . '/source/nested/nested/myfile.jpg');
-        $this->assertFileExists($directory->url() . '/destination/sub/other');
+        $this->assertFileExists($directory->url() . '/destination/sub/other.jpg');
     }
 
     public function testSourceNotReadable()

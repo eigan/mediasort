@@ -93,7 +93,7 @@ mv prettytree.phar /usr/local/bin/prettytree
                     Example: --only="jpg,gif"
                     
 --only-type         Only files with the given filetype
-                    Example: --type="photo,video"
+                    Example: --type="image,video,audio" (default)
                     
 --link              Create hardlink instead of moving
 

@@ -56,7 +56,7 @@ class Command extends SymfonyCommand
         $this->addArgument('source', InputArgument::REQUIRED);
         $this->addArgument('destination', InputArgument::OPTIONAL);
 
-        $this->addOption('format', '', InputOption::VALUE_OPTIONAL, 'The format', ':original');
+        $this->addOption('format', '', InputOption::VALUE_OPTIONAL, 'The format', ':year/:month/:date :time');
         $this->addOption('only', '', InputOption::VALUE_OPTIONAL, 'Limit by extensions');
         $this->addOption('link', '', InputOption::VALUE_NONE, 'Use hardlink instead of moving');
         $this->addOption('recursive', 'r', InputOption::VALUE_NONE, 'Go recursive');

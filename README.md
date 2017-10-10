@@ -10,7 +10,7 @@ A batch rename tool for directories.
 After an import from camera, and you want to put these files into a more logical position.
 
 ```
-prettytree source/ destination/ --format=":year/:month/:date :time"
+prettytree source/ destination/
 ```
 - `destination` is optional.
 - `:year`: Year created.
@@ -67,7 +67,7 @@ mv prettytree.phar /usr/local/bin/prettytree
 #### Options
 ```
 --format            Reformat the path
-                    Example: --format=":year/:month/:name"
+                    Example: --format=":year/:month/:date :time" (default)
              
                     Possible formatters:
                         :original (original path)

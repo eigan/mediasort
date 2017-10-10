@@ -104,7 +104,8 @@ class CommandTest extends TestCase
 
         $this->commandTester->execute([
             'source' => 'pictures/source',
-            'destination' => 'pretty'
+            'destination' => 'pretty',
+            '--format' => ':original'
         ], ['interactive' => false]);
 
         $this->assertFileExists($root->url() . '/home/einar/pretty/myfile.jpg');
@@ -139,7 +140,8 @@ class CommandTest extends TestCase
         $this->commandTester->execute([
             'source' => 'source',
             'destination' => '../pretty',
-            '-r' => true
+            '-r' => true,
+            '--format' => ':original'
         ], ['interactive' => false]);
 
         $this->assertFileExists($root->url() . '/home/einar/pretty/myfile.jpg');
@@ -267,7 +269,8 @@ class CommandTest extends TestCase
             'source' => $directory->url() . '/source',
             'destination' => $directory->url() . '/destination',
 
-            '--only' => 'jpg,JPG'
+            '--only' => 'jpg,JPG',
+            '--format' => ':original'
         ]);
 
         $root = $directory->url();
@@ -301,6 +304,7 @@ class CommandTest extends TestCase
             'destination' => $directory->url() . '/destination',
 
             '--ignore' => 'txt,php,',
+            '--format' => ':original'
         ], ['verbosity' => OutputInterface::VERBOSITY_VERBOSE]);
 
         $root = $directory->url();
@@ -360,7 +364,8 @@ class CommandTest extends TestCase
             'source' => $directory->url() . '/source',
             'destination' => $directory->url() . '/destination',
 
-            '-r' => true
+            '-r' => true,
+            '--format' => ':original'
         ]);
 
         $root = $directory->url();
@@ -476,7 +481,8 @@ class CommandTest extends TestCase
             'source' => $directory->url() . '/source',
             'destination' => $directory->url() . '/destination',
 
-            '-r' => true
+            '-r' => true,
+            '--format' => ':original'
         ], ['interactive' => true], ['Yes', 'N']);
 
         $this->assertContains('Move file? (yes/no) [yes]', $output);
@@ -545,6 +551,7 @@ class CommandTest extends TestCase
             'source' => $directory->url() . '/source',
             'destination' => $directory->url() . '/destination',
             '--only-type' => 'image',
+            '--format' => ':original'
         ], ['interactive' => false]);
 
         $this->assertFileExists($directory->url() . '/destination/myfile.jpg');
@@ -557,6 +564,7 @@ class CommandTest extends TestCase
             'source' => $directory->url() . '/source',
             'destination' => $directory->url() . '/destination',
             '--only-type' => 'video',
+            '--format' => ':original'
         ], ['interactive' => false]);
 
         $this->assertFileExists($directory->url() . '/destination/myvideo.3gp');
@@ -566,6 +574,7 @@ class CommandTest extends TestCase
             'source' => $directory->url() . '/source',
             'destination' => $directory->url() . '/destination',
             '--only-type' => 'audio',
+            '--format' => ':original'
         ], ['interactive' => false]);
 
         $this->assertFileExists($directory->url() . '/destination/myaudio.au');
@@ -574,6 +583,7 @@ class CommandTest extends TestCase
             'source' => $directory->url() . '/source',
             'destination' => $directory->url() . '/destination',
             '--only-type' => '',
+             '--format' => ':original'
         ], ['interactive' => false]);
 
         $this->assertContains("Missing value for --only-type", $this->commandTester->getDisplay());
@@ -633,6 +643,7 @@ class CommandTest extends TestCase
         $commandTester->execute([
             'source' => $directory->url() . '/source',
             'destination' => $directory->url() . '/destination',
+            '--format' => ':original'
         ], ['interactive' => false]);
 
         $this->assertFileExists($directory->url() . '/destination/other.jpg');
@@ -702,7 +713,8 @@ class CommandTest extends TestCase
         $output = $this->execute([
             'source' => $directory->url() . '/source',
             'destination' => $directory->url() . '/destination',
-            '-r' => true
+            '-r' => true,
+            '--format' => ':original'
         ]);
 
         $this->assertFileExists($directory->url() . '/source/nested/myfile.jpg');
@@ -735,7 +747,8 @@ class CommandTest extends TestCase
         $output = $this->execute([
             'source' => $directory->url() . '/source',
             'destination' => $directory->url() . '/destination',
-            '-r' => true
+            '-r' => true,
+            '--format' => ':original'
         ], ['verbosity' => OutputInterface::VERBOSITY_VERBOSE]);
 
         $this->assertContains('Skipped: Not writable ('.$directory->url().'/destination/nested/nested/myfile.jpg)', $output);

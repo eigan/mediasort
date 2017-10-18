@@ -428,12 +428,26 @@ class CommandTest extends TestCase
         $this->expectException(\PHPUnit\Framework\Error\Warning::class);
         $this->expectExceptionMessage('link(): No such file or directory');
 
-        $this->execute([
+        $output = $this->execute([
             'source' => $directory->url() . '/source',
             'destination' => $directory->url() . '/destination',
 
             '--link' => true
         ], ['verbosity' => OutputInterface::VERBOSITY_VERBOSE, 'interactive' => true], ['Yes']);
+
+        $this->assertContains('   myfile.jpg', $output);
+    }
+
+    public function testLinkMessage()
+    {
+        $output = $this->execute([
+            'source' => __DIR__ . '/../',
+
+            '--link' => true,
+            '--dry-run' => true,
+        ], ['verbosity' => OutputInterface::VERBOSITY_VERBOSE, 'interactive' => true], ['Yes']);
+
+        $this->assertContains('   '.__DIR__.'/../exif.jpg', $output);
     }
 
     public function testVerboseMode()
@@ -460,7 +474,7 @@ class CommandTest extends TestCase
         $this->assertContains('Source: ' . $directory->url() . '/source', $output);
         $this->assertContains('Destination: ' . $directory->url() . '/destination', $output);
 
-        $this->assertContains('- ' . $directory->url() . '/source/myfile.jpg', $output);
+        $this->assertContains(' - ' . $directory->url() . '/source/myfile.jpg', $output);
     }
 
     public function testInteractive()
@@ -579,14 +593,39 @@ class CommandTest extends TestCase
 
         $this->assertFileExists($directory->url() . '/destination/myaudio.au');
 
-         $this->commandTester->execute([
+        $this->commandTester->execute([
             'source' => $directory->url() . '/source',
             'destination' => $directory->url() . '/destination',
             '--only-type' => '',
              '--format' => ':original'
         ], ['interactive' => false]);
 
-        $this->assertContains("Missing value for --only-type", $this->commandTester->getDisplay());
+        $this->assertContains('Missing value for --only-type', $this->commandTester->getDisplay());
+    }
+
+    public function testPermissions()
+    {
+        $directory = $this->createDirectory([
+            'source' => [
+                'nested' => [
+                    'file.jpg' => 'test'
+                ]
+            ],
+            'destination' => [
+
+            ]
+        ]);
+
+        chmod($directory->url() . '/source/nested/file.jpg', 500);
+        chmod($directory->url() . '/source/nested', 500);
+
+        $output = $this->execute([
+            'source' => $directory->url() . '/source',
+            'destination' => $directory->url() . '/destination',
+        ], ['interactive' => false]);
+
+        $this->assertFileExists($directory->url() . '/source/nested/file.jpg');
+        $this->assertFileNotExists($directory->url() . '/destination/nested/file.jpg');
     }
 
     public function testDryRun()

@@ -2,7 +2,9 @@
 
 namespace Eig\PrettyTree;
 
-class Application extends \Symfony\Component\Console\Application
+use Symfony\Component\Console\Application as SymfonyApplication;
+
+class Application extends SymfonyApplication
 {
     const VERSION = 'dev';
 
@@ -26,11 +28,19 @@ class Application extends \Symfony\Component\Console\Application
         $this->setDefaultCommand('move', true);
     }
 
+    /**
+     * Get the formatter used for filname formatting
+     *
+     * @return FilenameFormatter
+     */
     public function getFilenameFormatter(): FilenameFormatter
     {
         return $this->formatter;
     }
 
+    /**
+     * @inheritdoc
+     */
     protected function getDefaultCommands()
     {
         $parent =  parent::getDefaultCommands();

@@ -70,12 +70,12 @@ mv prettytree.phar /usr/local/bin/prettytree
              
                     Possible formatters:
                         :original (original path)
-                        :date (alias ":year-:monthnumeric-:day")
+                        :date (alias ":year-:monthnum-:day")
                         :time (alias ":hour::minute::second")
-                        :month (alias ":monumeric - :monthstring")
+                        :month (alias ":monthnum - :monthname")
                         :year
-                        :monthnumeric
-                        :monthstring
+                        :monthnum
+                        :monthname
                         :day
                         :hour
                         :minute

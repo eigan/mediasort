@@ -7,6 +7,9 @@ use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
+use Symfony\Component\Console\Style\SymfonyStyle;
+use InvalidArgumentException;
+use RuntimeException;
 
 class Command extends SymfonyCommand
 {
@@ -49,7 +52,10 @@ class Command extends SymfonyCommand
         $this->subscribers[$key][] = $callback;
     }
 
-    protected function configure()
+    /**
+     * Setup the command by adding arguments and options
+     */
+    protected function configure(): void
     {
         $this->setName('move');
 
@@ -65,11 +71,19 @@ class Command extends SymfonyCommand
         $this->addOption('dry-run', '', InputOption::VALUE_NONE, 'Do not move the files');
     }
 
+    /**
+     * This method does everything
+     *
+     * @param InputInterface $input
+     * @param OutputInterface $output
+     *
+     * @return void
+     */
     protected function execute(InputInterface $input, OutputInterface $output)
     {
-        $io = new OutputStyle($input, $output);
+        $symfonyStyle = new SymfonyStyle($input, $output);
 
-        $this->addStandardSubcribers($input, $output, $io);
+        $this->addStandardSubcribers($input, $output);
 
         $this->publish('start', [$input]);
 
@@ -79,7 +93,7 @@ class Command extends SymfonyCommand
         $dryRyn = $input->getOption('dry-run');
 
         if (empty($type = $input->getOption('only-type'))) {
-            $io->error('Missing value for --only-type');
+            $output->writeln('<fg=white;bg=red>Missing value for --only-type</>');
             return;
         }
 
@@ -90,12 +104,12 @@ class Command extends SymfonyCommand
                 $extension = pathinfo($path, PATHINFO_EXTENSION);
 
                 if ($extension) {
-                    $path = $this->str_lreplace('.'.$extension, '', $path);
+                    $path = $this->replaceLastOccurrence('.'.$extension, '', $path);
                 }
 
                 return str_replace($source, '', $path);
             });
-        } catch (\InvalidArgumentException $e) {
+        } catch (InvalidArgumentException $e) {
             $output->write($e->getMessage());
             return;
         }
@@ -113,9 +127,9 @@ class Command extends SymfonyCommand
             $this->publish('iterate.start', [$fileSourcePath]);
 
             try {
-                $fileDestinationPath = $this->makeFileDestinationPath($destination, $source, $fileSourcePath, $format);
-            } catch (\RuntimeException $e) {
-                $io->error($e->getMessage());
+                $fileDestinationPath = $this->formatDestinationPath($destination, $fileSourcePath, $format);
+            } catch (RuntimeException $e) {
+                $output->writeln('<fg=white;bg=red>'.$e->getMessage().'</>');
                 continue;
             }
 
@@ -135,30 +149,30 @@ class Command extends SymfonyCommand
             }
 
             if ($shouldLink) {
-                $io->linkPath($fileSourcePath);
+                $output->writeln("   $fileSourcePath");
             } else {
-                $io->movePath($fileSourcePath);
+                $output->writeln(" <fg=red>- $fileSourcePath</> (move)");
             }
 
-            $io->destinationPath($fileDestinationPath);
+            $output->writeln(" <fg=green>+ $fileDestinationPath</>");
 
             if ($shouldLink) {
-                if ($io->confirm('Create hardlink?') && !$dryRyn) {
+                if ($symfonyStyle->confirm('Create hardlink?') && !$dryRyn) {
                     $this->publish('iterate.link', [$fileSourcePath, $fileDestinationPath]);
 
                     $destinationIsOk = $this->mkdir($fileDestinationPath);
 
-                    if($destinationIsOk) {
+                    if ($destinationIsOk) {
                         link($fileSourcePath, $fileDestinationPath);
                     }
                 }
             } else {
-                if ($io->confirm('Move file?') && !$dryRyn) {
+                if ($symfonyStyle->confirm('Move file?') && !$dryRyn) {
                     $this->publish('iterate.move', [$fileSourcePath, $fileDestinationPath]);
 
                     $destinationIsOk = $this->mkdir($fileDestinationPath);
 
-                    if($destinationIsOk) {
+                    if ($destinationIsOk) {
                         rename($fileSourcePath, $fileDestinationPath);
                     }
                 }
@@ -168,16 +182,16 @@ class Command extends SymfonyCommand
         }
     }
 
-    private function addStandardSubcribers(InputInterface $input, OutputInterface $output, OutputStyle $io)
+    private function addStandardSubcribers(InputInterface $input, OutputInterface $output)
     {
         if ($output->isVerbose()) {
-            $this->addVerboseSubscriber($io);
+            $this->addVerboseSubscriber($output);
         }
     }
 
-    private function addVerboseSubscriber(OutputStyle $io)
+    private function addVerboseSubscriber(OutputInterface $output)
     {
-        $verboseSubscriber = new Subscribers\VerboseSubscriber($io);
+        $verboseSubscriber = new Subscribers\VerboseSubscriber($output);
 
         foreach ($verboseSubscriber->subscribe() as $key => $callback) {
             $this->subscribe($key, $callback);
@@ -193,6 +207,15 @@ class Command extends SymfonyCommand
         }
     }
 
+    /**
+     * Resolve `source` and `destination` arguments
+     *
+     * @param InputInterface $input
+     *
+     * @return array [string $source, string $destination]
+     *
+     * @throws InvalidArgumentException
+     */
     protected function resolvePaths(InputInterface $input): array
     {
         $destination = $input->getArgument('destination') ?: $input->getArgument('source');
@@ -211,21 +234,29 @@ class Command extends SymfonyCommand
                 $sourceComponents['scheme'] !== $destinationComponents['scheme']
             )
         ) {
-            throw new \InvalidArgumentException("PrettyTree doesn't support operations across wrapper types");
+            throw new InvalidArgumentException("PrettyTree doesn't support operations across wrapper types");
         }
 
         if (is_readable($source) === false) {
-            throw new \InvalidArgumentException('Source is not readable');
+            throw new InvalidArgumentException('Source is not readable');
         }
 
         if (is_writable($destination) === false) {
-            throw new \InvalidArgumentException('Destination is not writable');
+            throw new InvalidArgumentException('Destination is not writable');
         }
 
         return [$source, $destination];
     }
 
-    private function shouldSkip($fileSourcePath, InputInterface $input)
+    /**
+     * Determine if the given path can be skipped
+     *
+     * @param $fileSourcePath
+     * @param InputInterface $input
+     *
+     * @return bool
+     */
+    private function shouldSkip($fileSourcePath, InputInterface $input): bool
     {
         $ignore = $input->getOption('ignore');
         $only = $input->getOption('only');
@@ -280,6 +311,12 @@ class Command extends SymfonyCommand
         return true;
     }
 
+    /**
+     * Creates the full path to where we want to put the file
+     *
+     * @param string $fileDestinationPath
+     * @return bool
+     */
     private function mkdir(string $fileDestinationPath): bool
     {
         if (file_exists(dirname($fileDestinationPath)) === false) {
@@ -295,7 +332,14 @@ class Command extends SymfonyCommand
         return true;
     }
 
-    private function getTypesExtensions(array $types)
+    /**
+     * Litle utility to get the allowed extenstions given the $types sent via --only-type
+     *
+     * @param array $types
+     *
+     * @return array
+     */
+    private function getTypesExtensions(array $types): array
     {
         $allowed = [];
 
@@ -343,7 +387,16 @@ class Command extends SymfonyCommand
         return $allowed;
     }
 
-    private function makeFileDestinationPath(string $destination, string $source, string $fileSourcePath, string $format)
+    /**
+     * Creates the destination path by using the format specified
+     *
+     * @param string $destination
+     * @param string $fileSourcePath
+     * @param string $format
+     *
+     * @return string
+     */
+    private function formatDestinationPath(string $destination, string $fileSourcePath, string $format): string
     {
         $mewPath = $this->formatter->format($format . ':ext', $fileSourcePath);
 
@@ -354,7 +407,14 @@ class Command extends SymfonyCommand
         return $destination . $mewPath;
     }
 
-    private function incrementPath($fileDestinationPath)
+    /**
+     * Given a path, increment until the file doesnt exist anymore
+     *
+     * @param $fileDestinationPath
+     *
+     * @return string
+     */
+    private function incrementPath($fileDestinationPath): string
     {
         $index = 0;
 
@@ -374,7 +434,7 @@ class Command extends SymfonyCommand
 
         $extension = pathinfo($fileDestinationPath, PATHINFO_EXTENSION);
 
-        $fileDestinationPath = $this->str_lreplace('.'.$extension, " (1).$extension", $fileDestinationPath);
+        $fileDestinationPath = $this->replaceLastOccurrence('.'.$extension, " (1).$extension", $fileDestinationPath);
 
         do {
             $fileDestinationPath = $increment($fileDestinationPath, ++$index);
@@ -383,11 +443,31 @@ class Command extends SymfonyCommand
         return $fileDestinationPath;
     }
 
-    private function isDuplicate(string $fileSourcePath, $fileDestinationPath)
+    /**
+     * Check if the given path is a duplicate
+     *
+     * @param string $fileSourcePath
+     * @param string $fileDestinationPath
+     *
+     * @return bool
+     */
+    private function isDuplicate(string $fileSourcePath, string $fileDestinationPath): bool
     {
-        return hash_file('md5', $fileSourcePath) === hash_file('md5', $fileDestinationPath);
+        if(filesize($fileSourcePath) === filesize($fileDestinationPath)) {
+            return hash_file('md5', $fileSourcePath) === hash_file('md5', $fileDestinationPath);
+        }
+
+        return false;
     }
 
+    /**
+     * Loop over the given $root directory and yield each path
+     *
+     * @param string $root
+     * @param bool $recursive
+     *
+     * @return \Iterator
+     */
     private function iterate(string $root, bool $recursive = false): \Iterator
     {
         $paths = [];
@@ -407,6 +487,7 @@ class Command extends SymfonyCommand
             }
         }
 
+        // Key is the file modified timestamp
         ksort($paths);
 
         foreach ($paths as $path) {
@@ -420,6 +501,13 @@ class Command extends SymfonyCommand
         }
     }
 
+    /**
+     * Takes a path, and create absolute path of it
+     *
+     * @param string $path
+     *
+     * @return string
+     */
     private function realpath(string $path): string
     {
         $real = $path;
@@ -434,11 +522,8 @@ class Command extends SymfonyCommand
             $real = $this->rootPath . '/' . $real;
         }
 
-        // Didnt work with vfs
-        //$path = realpath($path);
-
         if (!file_exists($real)) {
-            throw new \InvalidArgumentException("Path [$path] does not exist");
+            throw new InvalidArgumentException("Path [$path] does not exist");
         }
 
         return $real;
@@ -447,12 +532,13 @@ class Command extends SymfonyCommand
     /**
      * Replace last occurens of $search
      *
-     * @param $search
-     * @param $replace
-     * @param $subject
-     * @return mixed
+     * @param string $search
+     * @param string $replace
+     * @param string $subject
+     *
+     * @return string
      */
-    private function str_lreplace($search, $replace, $subject)
+    private function replaceLastOccurrence(string $search, string $replace, string $subject): string
     {
         $pos = strrpos($subject, $search);
 

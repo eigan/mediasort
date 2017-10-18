@@ -96,7 +96,7 @@ class FilenameFormatterTest extends TestCase
         $date = strtotime('-1 month');
         touch($this->filePath, $date);
 
-        $this->assertEquals(date('F', $date), $this->formatter->format(':monthstring', $this->filePath));
+        $this->assertEquals(date('F', $date), $this->formatter->format(':monthname', $this->filePath));
     }
 
     public function testName()

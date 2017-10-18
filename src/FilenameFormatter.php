@@ -2,8 +2,8 @@
 
 namespace Eig\PrettyTree;
 
-use RuntimeException;
 use InvalidArgumentException;
+use RuntimeException;
 
 class FilenameFormatter
 {
@@ -29,7 +29,7 @@ class FilenameFormatter
      *
      * @param callable $formatter
      */
-    public function setFormatter($name, callable $formatter): void
+    public function setFormatter($name, callable $formatter)
     {
         $this->formatters[$name] = $formatter;
     }
@@ -42,7 +42,7 @@ class FilenameFormatter
      *
      * @return string
      *
-     * @throws RuntimeException When a formatter fails
+     * @throws RuntimeException         When a formatter fails
      * @throws InvalidArgumentException When the formatter doesnt exist
      */
     public function format(string $format, string $path): string
@@ -109,7 +109,7 @@ class FilenameFormatter
      *
      * TODO: Make into a more dynamic system with classes etc
      */
-    protected function setupFormatters(): void
+    protected function setupFormatters()
     {
         $this->formatters = [
             ':date' => function ($path) {

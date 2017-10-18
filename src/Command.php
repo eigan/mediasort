@@ -2,14 +2,14 @@
 
 namespace Eig\PrettyTree;
 
+use InvalidArgumentException;
+use RuntimeException;
 use Symfony\Component\Console\Command\Command as SymfonyCommand;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
-use InvalidArgumentException;
-use RuntimeException;
 
 class Command extends SymfonyCommand
 {
@@ -55,7 +55,7 @@ class Command extends SymfonyCommand
     /**
      * Setup the command by adding arguments and options
      */
-    protected function configure(): void
+    protected function configure()
     {
         $this->setName('move');
 
@@ -74,7 +74,7 @@ class Command extends SymfonyCommand
     /**
      * This method does everything
      *
-     * @param InputInterface $input
+     * @param InputInterface  $input
      * @param OutputInterface $output
      *
      * @return void
@@ -314,7 +314,7 @@ class Command extends SymfonyCommand
     /**
      * Creates the full path to where we want to put the file
      *
-     * @param string $fileDestinationPath
+     * @param  string $fileDestinationPath
      * @return bool
      */
     private function mkdir(string $fileDestinationPath): bool
@@ -453,7 +453,7 @@ class Command extends SymfonyCommand
      */
     private function isDuplicate(string $fileSourcePath, string $fileDestinationPath): bool
     {
-        if(filesize($fileSourcePath) === filesize($fileDestinationPath)) {
+        if (filesize($fileSourcePath) === filesize($fileDestinationPath)) {
             return hash_file('md5', $fileSourcePath) === hash_file('md5', $fileDestinationPath);
         }
 
@@ -464,7 +464,7 @@ class Command extends SymfonyCommand
      * Loop over the given $root directory and yield each path
      *
      * @param string $root
-     * @param bool $recursive
+     * @param bool   $recursive
      *
      * @return \Iterator
      */

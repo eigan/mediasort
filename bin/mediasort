@@ -10,6 +10,6 @@ if (file_exists($autoload)) {
     require_once __DIR__.'/../vendor/autoload.php';
 }
 
-$app = new \Eig\PrettyTree\Application(getcwd());
+$app = new \Eig\Mediasort\Application(getcwd());
 
 $app->run();

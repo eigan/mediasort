@@ -26,8 +26,8 @@
 
   "autoload": {
       "psr-4": {
-          "Eig\\PrettyTree\\": "src/",
-          "Eig\\PrettyTree\\Tests\\": "tests"
+          "Eig\\Mediasort\\": "src/",
+          "Eig\\Mediasort\\Tests\\": "tests"
       }
   }
 }

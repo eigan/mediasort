@@ -1,6 +1,6 @@
 <?php
 
-namespace Eig\PrettyTree\Subscribers;
+namespace Eig\Mediasort\Subscribers;
 
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;

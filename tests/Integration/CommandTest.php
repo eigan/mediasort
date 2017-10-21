@@ -1,9 +1,9 @@
 <?php
 
-namespace Eig\PrettyTree\Tests\Integration;
+namespace Eig\Mediasort\Tests\Integration;
 
-use Eig\PrettyTree\Application;
-use Eig\PrettyTree\Command;
+use Eig\Mediasort\Application;
+use Eig\Mediasort\Command;
 use org\bovigo\vfs\vfsStream;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Console\Output\OutputInterface;
@@ -882,14 +882,14 @@ class CommandTest extends TestCase
             'destination' => $directory->url() . '/destination',
         ]);
 
-        $this->assertContains('PrettyTree doesn\'t support operations across wrapper types', $output);
+        $this->assertContains('Mediasort doesn\'t support operations across wrapper types', $output);
 
         $output = $this->execute([
             'destination' => __DIR__ . '/../',
             'source' => $directory->url() . '/destination',
         ]);
 
-        $this->assertContains('PrettyTree doesn\'t support operations across wrapper types', $output);
+        $this->assertContains('Mediasort doesn\'t support operations across wrapper types', $output);
     }
 
     private function createDirectory($structure)

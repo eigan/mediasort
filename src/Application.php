@@ -1,6 +1,6 @@
 <?php
 
-namespace Eig\PrettyTree;
+namespace Eig\Mediasort;
 
 use Symfony\Component\Console\Application as SymfonyApplication;
 

@@ -1,8 +1,8 @@
 <?php
 
-namespace Eig\PrettyTree\Tests\Unit;
+namespace Eig\Mediasort\Tests\Unit;
 
-use Eig\PrettyTree\FilenameFormatter;
+use Eig\Mediasort\FilenameFormatter;
 use org\bovigo\vfs\vfsStream;
 use org\bovigo\vfs\vfsStreamDirectory;
 use PHPUnit\Framework\TestCase;

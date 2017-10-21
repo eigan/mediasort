@@ -1,6 +1,6 @@
 <?php
 
-namespace Eig\PrettyTree;
+namespace Eig\Mediasort;
 
 use InvalidArgumentException;
 use RuntimeException;

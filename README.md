@@ -1,7 +1,7 @@
-[![pipeline status](https://gitlab.com/eigan/prettytree/badges/master/pipeline.svg)](https://gitlab.com/eigan/prettytree/commits/master)
-[![coverage report](https://gitlab.com/eigan/prettytree/badges/master/coverage.svg)](https://gitlab.com/eigan/prettytree/commits/master)
+[![pipeline status](https://gitlab.com/eigan/mediasort/badges/master/pipeline.svg)](https://gitlab.com/eigan/mediasort/commits/master)
+[![coverage report](https://gitlab.com/eigan/mediasort/badges/master/coverage.svg)](https://gitlab.com/eigan/mediasort/commits/master)
 
-## prettytree
+## mediasort
 
 A batch rename tool for media files (audio, video and images). Move, or create an hardlink, with
 a new name based on meta information extracted from the file. 
@@ -15,7 +15,7 @@ a new name based on meta information extracted from the file.
 After an import from camera, and you want to put these files into a more logical position.
 
 ```
-prettytree source/ destination/
+mediasort source/ destination/
 ```
 - `destination` is optional.
 
@@ -52,13 +52,13 @@ destination
 
 ### Installation
 ```sh
-git clone https://gitlab.com/eigan/prettytree.git
-cd prettytree
+git clone https://gitlab.com/eigan/mediasort.git
+cd mediasort
 composer install --dev
 
 php -d="phar.readonly=0" vendor/bin/box build
-chmod 755 prettytree.phar
-mv prettytree.phar /usr/local/bin/prettytree
+chmod 755 mediasort.phar
+mv mediasort.phar /usr/local/bin/mediasort
 ```
 
 

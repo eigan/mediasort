@@ -1,6 +1,6 @@
 <?php
 
-namespace Eig\PrettyTree;
+namespace Eig\Mediasort;
 
 use InvalidArgumentException;
 use RuntimeException;
@@ -234,7 +234,7 @@ class Command extends SymfonyCommand
                 $sourceComponents['scheme'] !== $destinationComponents['scheme']
             )
         ) {
-            throw new InvalidArgumentException("PrettyTree doesn't support operations across wrapper types");
+            throw new InvalidArgumentException("Mediasort doesn't support operations across wrapper types");
         }
 
         if (is_readable($source) === false) {

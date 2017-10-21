@@ -20,10 +20,10 @@ class Application extends SymfonyApplication
 
     public function __construct(string $rootPath = '')
     {
-        parent::__construct('Uniktree', self::VERSION);
-
         $this->rootPath = $rootPath;
         $this->formatter = new FilenameFormatter();
+        
+        parent::__construct('Uniktree', self::VERSION);
 
         $this->setDefaultCommand('move', true);
     }

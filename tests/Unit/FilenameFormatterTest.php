@@ -1,8 +1,8 @@
 <?php
 
-namespace Eig\Mediasort\Tests\Unit;
+namespace Eigan\Mediasort\Tests\Unit;
 
-use Eig\Mediasort\FilenameFormatter;
+use Eigan\Mediasort\FilenameFormatter;
 use org\bovigo\vfs\vfsStream;
 use org\bovigo\vfs\vfsStreamDirectory;
 use PHPUnit\Framework\TestCase;

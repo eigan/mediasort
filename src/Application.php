@@ -1,6 +1,6 @@
 <?php
 
-namespace Eig\Mediasort;
+namespace Eigan\Mediasort;
 
 use Symfony\Component\Console\Application as SymfonyApplication;
 

@@ -10,6 +10,6 @@ if (file_exists($autoload)) {
     require_once __DIR__.'/../vendor/autoload.php';
 }
 
-$app = new \Eig\Mediasort\Application(getcwd());
+$app = new \Eigan\Mediasort\Application(getcwd());
 
 $app->run();

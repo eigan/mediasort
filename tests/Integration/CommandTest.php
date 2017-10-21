@@ -1,9 +1,9 @@
 <?php
 
-namespace Eig\Mediasort\Tests\Integration;
+namespace Eigan\Mediasort\Tests\Integration;
 
-use Eig\Mediasort\Application;
-use Eig\Mediasort\Command;
+use Eigan\Mediasort\Application;
+use Eigan\Mediasort\Command;
 use org\bovigo\vfs\vfsStream;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Console\Output\OutputInterface;

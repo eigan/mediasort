@@ -1,6 +1,6 @@
 {
-  "name": "eig/prettyprint",
-  "description": "Utility for batch renaming files in a directory",
+  "name": "eigan/mediasort",
+  "description": "A batch rename tool for media files",
   "require": {
     "symfony/console": "^3.3",
     "php": ">=7.0"
@@ -26,8 +26,8 @@
 
   "autoload": {
       "psr-4": {
-          "Eig\\Mediasort\\": "src/",
-          "Eig\\Mediasort\\Tests\\": "tests"
+          "Eigan\\Mediasort\\": "src/",
+          "Eigan\\Mediasort\\Tests\\": "tests"
       }
   }
 }

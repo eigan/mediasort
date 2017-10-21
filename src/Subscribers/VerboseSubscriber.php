@@ -1,6 +1,6 @@
 <?php
 
-namespace Eig\Mediasort\Subscribers;
+namespace Eigan\Mediasort\Subscribers;
 
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;

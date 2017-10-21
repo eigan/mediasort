@@ -1,6 +1,6 @@
 <?php
 
-namespace Eig\Mediasort;
+namespace Eigan\Mediasort;
 
 use InvalidArgumentException;
 use RuntimeException;

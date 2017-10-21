@@ -1,10 +1,10 @@
 {
   "name": "eigan/mediasort",
   "description": "A batch rename tool for media files",
-  "require": {
-    "symfony/console": "^3.3",
-    "php": ">=7.0"
-  },
+
+  "bin": [
+    "bin/mediasort"
+  ],
 
   "config": {
     "platform": {
@@ -14,6 +14,11 @@
 
   "suggest": {
     "ext-exif": "Read camera meta information"
+  },
+
+  "require": {
+    "symfony/console": "^3.3",
+    "php": ">=7.0"
   },
 
   "require-dev": {

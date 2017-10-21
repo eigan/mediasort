@@ -1,7 +1,7 @@
 [![pipeline status](https://gitlab.com/eigan/mediasort/badges/master/pipeline.svg)](https://gitlab.com/eigan/mediasort/commits/master)
 [![coverage report](https://gitlab.com/eigan/mediasort/badges/master/coverage.svg)](https://gitlab.com/eigan/mediasort/commits/master)
 
-## mediasort
+## Mediasort
 
 A batch rename tool for media files (audio, video and images). Move, or create an hardlink, with
 a new name based on meta information extracted from the file. 
@@ -10,17 +10,32 @@ a new name based on meta information extracted from the file.
 - Ensure no duplicates
 - Can be executed after each change in directories 
 
-### Example
+ * [Example](#example)
+ * [Installation](#installation)
+    * [Composer](#composer)
+    * [Build from source](#build-from-source)
+ * [Usage](#usage)
+    * [Options](#options)
+ * [About](#about)
+    * [Speed](#speed)
+    * [File name collision](#file-name-collision)
 
-After an import from camera, and you want to put these files into a more logical position.
+### Example
 
 ```
 mediasort source/ destination/
 ```
 - `destination` is optional.
+- `--format=":year/:month/:date :time"` default format of new filenames
 
+Common options
+- `-r` for recursive
+- `--link` for using hardlinks
+- `-n` for no interaction (autoconfirm)
+- `-q` quiet
+- See [more options](#options)
 
-##### Current directory structure
+##### Before
 
 ```
 source
@@ -32,7 +47,7 @@ source
 ```
 
 
-##### After tool completed
+##### After
 
 Files are moved into `destination/` (create hardlinks with `--link`)
 
@@ -51,6 +66,12 @@ destination
 
 
 ### Installation
+#### Composer
+```
+composer global require eigan/mediasort
+```
+
+#### Build from source
 ```sh
 git clone https://gitlab.com/eigan/mediasort.git
 cd mediasort
@@ -104,19 +125,13 @@ mv mediasort.phar /usr/local/bin/mediasort
                     Example: --ignore="db,db-journal"
                     
 --dry-run           Do not execute move/link
-    
-
 ```
-Note: shortcuts cannot be combined, `-nv` will not work. This is a limitation of `symfony/console`.
+Note: shortcuts cannot be combined, `-nv` will not work. This is a limitation of the CLI library used.
 
+### About
+#### Speed
+For a structure with 5929 files (38.7GB), it took 0.46s.
 
-### TODO
-All of these before `1.0`
-
-- More integration tests.
-- Show information when completed (num skipped, extensions encountered, etc).
-
-### Scenarios
 #### File name collision
 ```
 filename = destination/2017/image.jpg

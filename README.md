@@ -148,6 +148,7 @@ Date is retrieved from files in the following order:
   - YYYYMMDD_HHMMSS
   - YYYY-MM-DD HH.mm.ss
   - YYYYMMDDHHMMSS
+  - YYYYMMDD-HHMMSS
 - Use file modification date
   - The date might not always be correct!
 

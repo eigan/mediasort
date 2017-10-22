@@ -41,6 +41,13 @@ class FilenameFormatterTest extends TestCase
     protected $datedPath3;
 
     /**
+     * Pattern: YYYYMMDD-HHMMSS
+     *
+     * @var string
+     */
+    protected $datedPath4;
+
+    /**
      * Pattern: Many numbers..
      *
      * @var string
@@ -62,6 +69,7 @@ class FilenameFormatterTest extends TestCase
                 '2017-07-09 12.13.46.mp4' => 'content3',
                 'VID_20170709121346.mp4' => 'content4',
                 '123420169123456789.mp4' => 'content5',
+                'VID_20170518-222741.mp4' => 'content6',
             ]
         ]);
 
@@ -69,7 +77,9 @@ class FilenameFormatterTest extends TestCase
         $this->datedPath = $this->directory->url() . '/source/VID_20170709_121346.mp4';
         $this->datedPath2 = $this->directory->url() . '/source/2017-07-09 12.13.46.mp4';
         $this->datedPath3 = $this->directory->url() . '/source/VID_20170709121346.mp4';
+        $this->datedPath4 = $this->directory->url() . '/source/VID_20170518-222741.mp4';
         $this->numberedPath = $this->directory->url() . '/source/123420169123456789.mp4';
+
         $this->formatter = new FilenameFormatter();
     }
 
@@ -145,6 +155,7 @@ class FilenameFormatterTest extends TestCase
         $this->assertEquals('12:13:46', $this->formatter->format(':time', $this->datedPath));
         $this->assertEquals('12:13:46', $this->formatter->format(':time', $this->datedPath2));
         $this->assertEquals('12:13:46', $this->formatter->format(':time', $this->datedPath3));
+        $this->assertEquals('22:27:41', $this->formatter->format(':time', $this->datedPath4));
 
         $date = strtotime('-1 month');
         touch($this->numberedPath, $date);
@@ -157,6 +168,7 @@ class FilenameFormatterTest extends TestCase
         $this->assertEquals('2017-07-09', $this->formatter->format(':date', $this->datedPath));
         $this->assertEquals('2017-07-09', $this->formatter->format(':date', $this->datedPath2));
         $this->assertEquals('2017-07-09', $this->formatter->format(':date', $this->datedPath3));
+        $this->assertEquals('2017-05-18', $this->formatter->format(':date', $this->datedPath4));
 
         $date = strtotime('-1 month');
         touch($this->numberedPath, $date);

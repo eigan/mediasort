@@ -113,16 +113,23 @@ class FilenameFormatter
         }
 
         $datePatterns = [
-            "/(?P<year>\d{4})(?P<month>\d{2})(?P<day>\d{2})_(?P<hour>\d{2})(?P<minute>\d{2})(?P<second>\d{2})/",
-            "/(?P<year>\d{4})-(?P<month>\d{2})-(?P<day>\d{2}) (?P<hour>\d{2}).(?P<minute>\d{2}).(?P<second>\d{2})/",
-            "/(?P<year>\d{4})(?P<month>\d{2})(?P<day>\d{2})(?P<hour>\d{2})(?P<minute>\d{2})(?P<second>\d{2})/",
+            "/(?P<year>\d{4})(?P<month>\d{2})(?P<day>\d{2})_(?P<hour>\d{2})(?P<minute>\d{2})(?P<second>\d{2})\./",
+            "/(?P<year>\d{4})-(?P<month>\d{2})-(?P<day>\d{2}) (?P<hour>\d{2}).(?P<minute>\d{2}).(?P<second>\d{2})\./",
+            "/(?P<year>\d{4})(?P<month>\d{2})(?P<day>\d{2})(?P<hour>\d{2})(?P<minute>\d{2})(?P<second>\d{2})\./",
         ];
 
         foreach ($datePatterns as $datePattern) {
             preg_match($datePattern, $path, $matches);
 
             if ($matches) {
-                return new \DateTime("{$matches['year']}-{$matches['month']}-{$matches['day']} {$matches['hour']}:{$matches['minute']}:{$matches['second']}");
+                try {
+                    $date = new \DateTime("{$matches['year']}-{$matches['month']}-{$matches['day']} {$matches['hour']}:{$matches['minute']}:{$matches['second']}");
+
+                    return $date;
+                } catch (\Exception $e) {
+                    // Probably tried to parse a long number sequence, and failed with month = 13+ or something
+                    continue;
+                }
             }
         }
 

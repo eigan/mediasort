@@ -146,6 +146,8 @@ Date is retrieved from files in the following order:
 - exif meta information
 - Date in path matching pattern:
   - YYYYMMDD_HHMMSS
+  - YYYY-MM-DD HH.mm.ss
+  - YYYYMMDDHHMMSS
 - Use file modification date
   - The date might not always be correct!
 

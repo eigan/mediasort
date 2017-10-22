@@ -112,12 +112,20 @@ class FilenameFormatter
             return new \DateTime('@'.$time);
         }
 
-        preg_match("/(?P<year>\d{4})(?P<month>\d{2})(?P<day>\d{2})_(?P<hour>\d{2})(?P<minute>\d{2})(?P<second>\d{2})/", $path, $matches);
+        $datePatterns = [
+            "/(?P<year>\d{4})(?P<month>\d{2})(?P<day>\d{2})_(?P<hour>\d{2})(?P<minute>\d{2})(?P<second>\d{2})/",
+            "/(?P<year>\d{4})-(?P<month>\d{2})-(?P<day>\d{2}) (?P<hour>\d{2}).(?P<minute>\d{2}).(?P<second>\d{2})/",
+            "/(?P<year>\d{4})(?P<month>\d{2})(?P<day>\d{2})(?P<hour>\d{2})(?P<minute>\d{2})(?P<second>\d{2})/",
+        ];
 
-        if ($matches) {
-            return new \DateTime("{$matches['year']}-{$matches['month']}-{$matches['day']} {$matches['hour']}:{$matches['minute']}:{$matches['second']}");
+        foreach ($datePatterns as $datePattern) {
+            preg_match($datePattern, $path, $matches);
+
+            if ($matches) {
+                return new \DateTime("{$matches['year']}-{$matches['month']}-{$matches['day']} {$matches['hour']}:{$matches['minute']}:{$matches['second']}");
+            }
         }
-        
+
         return new \DateTime('@'.filemtime($path));
     }
 

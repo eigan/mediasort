@@ -19,7 +19,26 @@ class FilenameFormatterTest extends TestCase
      */
     protected $filePath;
 
+    /**
+     * Pattern: YYYYMMDD_HHMMSS
+     *
+     * @var string
+     */
     protected $datedPath;
+
+    /**
+     * Pattern: YYYY-MM-DD HH-MM-SS
+     *
+     * @var string
+     */
+    protected $datedPath2;
+
+    /**
+     * Pattern: YYYYMMDDHHMMSS
+     *
+     * @var string
+     */
+    protected $datedPath3;
 
     /**
      * @var FilenameFormatter
@@ -32,12 +51,16 @@ class FilenameFormatterTest extends TestCase
             'source' => [
                 'myfile.jpg' => 'content',
                 'other' => '',
-                'VID_20170709_121346.mp4' => 'content2'
+                'VID_20170709_121346.mp4' => 'content2',
+                '2017-07-09 12.13.46.mp4' => 'content3',
+                'VID_20170709121346.mp4' => 'content4',
             ]
         ]);
 
         $this->filePath = $this->directory->url() . '/source/myfile.jpg';
         $this->datedPath = $this->directory->url() . '/source/VID_20170709_121346.mp4';
+        $this->datedPath2 = $this->directory->url() . '/source/2017-07-09 12.13.46.mp4';
+        $this->datedPath3 = $this->directory->url() . '/source/VID_20170709121346';
         $this->formatter = new FilenameFormatter();
     }
 
@@ -111,11 +134,15 @@ class FilenameFormatterTest extends TestCase
     public function testTimeFromPath()
     {
         $this->assertEquals('12:13:46', $this->formatter->format(':time', $this->datedPath));
+        $this->assertEquals('12:13:46', $this->formatter->format(':time', $this->datedPath2));
+        $this->assertEquals('12:13:46', $this->formatter->format(':time', $this->datedPath3));
     }
 
     public function testDateFromPath()
     {
         $this->assertEquals('2017-07-09', $this->formatter->format(':date', $this->datedPath));
+        $this->assertEquals('2017-07-09', $this->formatter->format(':date', $this->datedPath2));
+        $this->assertEquals('2017-07-09', $this->formatter->format(':date', $this->datedPath3));
     }
 
     public function testExifTime()

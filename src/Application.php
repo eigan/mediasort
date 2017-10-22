@@ -23,7 +23,7 @@ class Application extends SymfonyApplication
         $this->rootPath = $rootPath;
         $this->formatter = new FilenameFormatter();
         
-        parent::__construct('Uniktree', self::VERSION);
+        parent::__construct('Mediasort', self::VERSION);
 
         $this->setDefaultCommand('move', true);
     }

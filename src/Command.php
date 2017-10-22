@@ -434,7 +434,11 @@ class Command extends SymfonyCommand
 
         $extension = pathinfo($fileDestinationPath, PATHINFO_EXTENSION);
 
-        $fileDestinationPath = $this->replaceLastOccurrence('.'.$extension, " (1).$extension", $fileDestinationPath);
+        if ($extension) {
+            $fileDestinationPath = $this->replaceLastOccurrence('.'.$extension, " (1).$extension", $fileDestinationPath);
+        } else {
+            $fileDestinationPath .= ' (1)';
+        }
 
         do {
             $fileDestinationPath = $increment($fileDestinationPath, ++$index);

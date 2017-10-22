@@ -385,7 +385,11 @@ class CommandTest extends TestCase
                 'myFile (1).jpg' => 'content6',
                 'nested3' => ['myFile (1).jpg' => 'content5'],
                 'noext' => 'noext1',
-                'nested4' => ['noext' => 'noext2']
+                'nested4' => ['noext' => 'noext2'],
+                'noextbutImage' => file_get_contents(__DIR__ . '/../exif.jpg'),
+                'nested5' => [
+                    'noextbutImage' => file_get_contents(__DIR__ . '/../exif2.jpg'),
+                ]
             ],
             'destination' => [
 
@@ -407,6 +411,8 @@ class CommandTest extends TestCase
         $this->assertFileExists($root . '/destination/myfile (2).jpg');
         $this->assertFileExists($root . '/destination/myFile (1).jpg');
         $this->assertFileExists($root . '/destination/myFile (1) (1).jpg');
+        $this->assertFileExists($root . '/destination/noextbutImage');
+        $this->assertFileExists($root . '/destination/noextbutImage (1)');
         $this->assertFileNotExists($root . '/destination/noext');
         $this->assertFileNotExists($root . '/destination/noext (1)');
     }
@@ -445,7 +451,7 @@ class CommandTest extends TestCase
 
             '--link' => true,
             '--dry-run' => true,
-        ], ['verbosity' => OutputInterface::VERBOSITY_VERBOSE, 'interactive' => true], ['Yes']);
+        ], ['verbosity' => OutputInterface::VERBOSITY_VERBOSE, 'interactive' => true], ['Yes', 'No']);
 
         $this->assertContains('   '.__DIR__.'/../exif.jpg', $output);
     }

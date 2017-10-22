@@ -66,6 +66,12 @@ destination
 
 
 ### Installation
+
+#### Requirements
+- PHP 7.0.24+
+  - ext-exif. For precise meta information (dates), and more.
+
+
 #### Composer
 ```
 composer global require eigan/mediasort
@@ -133,13 +139,4 @@ Note: shortcuts cannot be combined, `-nv` will not work. This is a limitation of
 For a structure with 5929 files (38.7GB), it took 0.46s.
 
 #### File name collision
-```
-filename = destination/2017/image.jpg
-
-if fileName exists in destination:
-    if file identical:
-       ignore
-    else
-        add fileName index
-        # filename = destination/2017/image (1).jpg
-```
+When a file is identical, it gets ignored, otherwise we append an index to the filename.

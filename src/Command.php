@@ -216,7 +216,7 @@ class Command extends SymfonyCommand
      *
      * @throws InvalidArgumentException
      */
-    protected function resolvePaths(InputInterface $input): array
+    private function resolvePaths(InputInterface $input): array
     {
         $destination = $input->getArgument('destination') ?: $input->getArgument('source');
 

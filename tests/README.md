@@ -1,6 +1,8 @@
 ## Tests
 
-### Integration tests
+The code will always have 100% code coverage before any release. But that's often not enough,
+so we also tests for additional scenarios.
+
 ##### General
 - Source / Destination not exists
 - Resolve source/destination with relative paths
@@ -25,7 +27,7 @@
 ##### File handling
 - Move a single file
 - Skip if duplicate
-- `--only` extension
+- `--only` extensions
 - `--ignore` extensions
 - `--type` (image/video/audio)
 - Recursive and not recursive
@@ -34,7 +36,6 @@
 ##### Formatters
 - All formatters have correct values
 - When formatter throws exception / crashes
-
 
 ##### Edge cases
 - Source file removed right before moving it

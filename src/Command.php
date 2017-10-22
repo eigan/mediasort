@@ -180,9 +180,6 @@ class Command extends SymfonyCommand
 
             $this->publish('iterate.end', [$fileSourcePath, $fileDestinationPath]);
         }
-
-        $output->writeln(memory_get_usage(true));
-        $output->writeln(memory_get_peak_usage(true));
     }
 
     private function addStandardSubcribers(InputInterface $input, OutputInterface $output)

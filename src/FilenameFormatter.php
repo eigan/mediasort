@@ -104,6 +104,23 @@ class FilenameFormatter
         return $data;
     }
 
+    private function parseDate(string $path): \DateTime
+    {
+        $exif = $this->exif($path);
+
+        if (isset($exif['DateTimeOriginal']) && $time = strtotime($exif['DateTimeOriginal'])) {
+            return new \DateTime('@'.$time);
+        }
+
+        preg_match("/(?P<year>\d{4})(?P<month>\d{2})(?P<day>\d{2})_(?P<hour>\d{2})(?P<minute>\d{2})(?P<second>\d{2})/", $path, $matches);
+
+        if ($matches) {
+            return new \DateTime("{$matches['year']}-{$matches['month']}-{$matches['day']} {$matches['hour']}:{$matches['minute']}:{$matches['second']}");
+        }
+        
+        return new \DateTime('@'.filemtime($path));
+    }
+
     /*
      * Registers all the formatters
      *
@@ -120,13 +137,9 @@ class FilenameFormatter
             },
 
             ':hour' => function ($path) {
-                $exif = $this->exif($path);
+                $date = $this->parseDate($path);
 
-                if (isset($exif['DateTimeOriginal']) && $time = strtotime($exif['DateTimeOriginal'])) {
-                    return date('H', $time);
-                }
-
-                return date('H', filemtime($path));
+                return $date->format('H');
             },
 
             ':dirname' => function ($path) {
@@ -134,34 +147,22 @@ class FilenameFormatter
             },
 
             ':minute' => function ($path) {
-                $exif = $this->exif($path);
+                $date = $this->parseDate($path);
 
-                if (isset($exif['DateTimeOriginal']) && $time = strtotime($exif['DateTimeOriginal'])) {
-                    return date('i', $time);
-                }
-
-                return date('i', filemtime($path));
+                return $date->format('i');
             },
 
             ':second' => function ($path) {
-                $exif = $this->exif($path);
+                $date = $this->parseDate($path);
 
-                if (isset($exif['DateTimeOriginal']) && $time = strtotime($exif['DateTimeOriginal'])) {
-                    return date('s', $time);
-                }
-
-                return date('s', filemtime($path));
+                return $date->format('s');
             },
 
             ':year' => function ($path) {
                 // Check exif first
-                $exif = $this->exif($path);
+                $date = $this->parseDate($path);
 
-                if (isset($exif['DateTimeOriginal']) && $time = strtotime($exif['DateTimeOriginal'])) {
-                    return date('Y', $time);
-                }
-
-                return date('Y', filemtime($path));
+                return $date->format('Y');
             },
 
             ':month' => function ($path) {
@@ -169,33 +170,21 @@ class FilenameFormatter
             },
 
             ':monthname' => function ($path) {
-                $exif = $this->exif($path);
+                $date = $this->parseDate($path);
 
-                if (isset($exif['DateTimeOriginal']) && $time = strtotime($exif['DateTimeOriginal'])) {
-                    return date('F', $time);
-                }
-
-                return date('F', filemtime($path));
+                return $date->format('F');
             },
 
             ':monthnum' => function ($path) {
-                $exif = $this->exif($path);
+                $date = $this->parseDate($path);
 
-                if (isset($exif['DateTimeOriginal']) && $time = strtotime($exif['DateTimeOriginal'])) {
-                    return date('m', $time);
-                }
-
-                return date('m', filemtime($path));
+                return $date->format('m');
             },
 
             ':day' => function ($path) {
-                $exif = $this->exif($path);
+                $date = $this->parseDate($path);
 
-                if (isset($exif['DateTimeOriginal']) && $time = strtotime($exif['DateTimeOriginal'])) {
-                    return date('d', $time);
-                }
-
-                return date('d', filemtime($path));
+                return $date->format('d');
             },
 
             ':devicemake' => function ($path) {

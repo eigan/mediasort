@@ -19,6 +19,8 @@ class FilenameFormatterTest extends TestCase
      */
     protected $filePath;
 
+    protected $datedPath;
+
     /**
      * @var FilenameFormatter
      */
@@ -29,11 +31,13 @@ class FilenameFormatterTest extends TestCase
         $this->directory =  vfsStream::setup('test', null, [
             'source' => [
                 'myfile.jpg' => 'content',
-                'other' => ''
+                'other' => '',
+                'VID_20170709_121346.mp4' => 'content2'
             ]
         ]);
 
         $this->filePath = $this->directory->url() . '/source/myfile.jpg';
+        $this->datedPath = $this->directory->url() . '/source/VID_20170709_121346.mp4';
         $this->formatter = new FilenameFormatter();
     }
 
@@ -102,6 +106,16 @@ class FilenameFormatterTest extends TestCase
     public function testName()
     {
         $this->assertEquals('myfile', $this->formatter->format(':name', $this->filePath));
+    }
+
+    public function testTimeFromPath()
+    {
+        $this->assertEquals('12:13:46', $this->formatter->format(':time', $this->datedPath));
+    }
+
+    public function testDateFromPath()
+    {
+        $this->assertEquals('2017-07-09', $this->formatter->format(':date', $this->datedPath));
     }
 
     public function testExifTime()

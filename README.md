@@ -3,6 +3,8 @@
 
 ## Mediasort
 
+**Currently in BETA:** Please use `--link` option, and always keep backup.
+
 A batch rename tool for media files (audio, video and images). Move, or create an hardlink, with
 a new name based on meta information extracted from the file. 
 
@@ -18,6 +20,7 @@ a new name based on meta information extracted from the file.
     * [Options](#options)
  * [About](#about)
     * [Speed](#speed)
+    * [Date and time from files](#date-and-time-from-files)
     * [File name collision](#file-name-collision)
 
 ### Example
@@ -137,6 +140,14 @@ Note: shortcuts cannot be combined, `-nv` will not work. This is a limitation of
 ### About
 #### Speed
 For a structure with 5929 files (38.7GB), it took 0.46s.
+
+#### Date and time from files
+Date is retrieved from files in the following order:
+- exif meta information
+- Date in path matching pattern:
+  - YYYYMMDD_HHMMSS
+- Use file modification date
+  - The date might not always be correct!
 
 #### File name collision
 When a file is identical, it gets ignored, otherwise we append an index to the filename.

@@ -417,9 +417,9 @@ class Command extends SymfonyCommand
      *
      * @param $fileDestinationPath
      *
-     * @return string
+     * @return string|null
      */
-    private function incrementPath(string $fileSourcePath, string $fileDestinationPath): ?string
+    private function incrementPath(string $fileSourcePath, string $fileDestinationPath)
     {
         $index = 0;
 

@@ -139,7 +139,8 @@ Note: shortcuts cannot be combined, `-nv` will not work. This is a limitation of
 
 ### About
 #### Speed
-For a structure with 5929 files (38.7GB), it took 0.46s.
+For a structure with 3494 files (41.6GB), it took 0.29s on first run. Subsequent execution will take much much longer
+time because we compare the checksum of both destination and source files.
 
 #### Date and time from files
 Date is retrieved from files in the following order:

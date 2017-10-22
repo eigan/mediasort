@@ -13,9 +13,18 @@ class FilenameFormatter
     private $formatters;
 
     /**
+     * Cache path -> exif result
+     *
      * @var array
      */
-    private $exifCache;
+    private $cachedExif;
+
+    /**
+     * Cache path -> DateTime
+     *
+     * @var \DateTime[]
+     */
+    private $cachedDate = [];
 
     public function __construct()
     {
@@ -85,8 +94,8 @@ class FilenameFormatter
      */
     private function exif(string $file): array
     {
-        if (isset($this->exifCache[$file])) {
-            return $this->exifCache[$file];
+        if (isset($this->cachedExif[$file])) {
+            return $this->cachedExif[$file];
         }
 
         $data = [];
@@ -99,17 +108,21 @@ class FilenameFormatter
             $data = [];
         }
 
-        $this->exifCache[$file] = $data;
+        $this->cachedExif[$file] = $data;
 
         return $data;
     }
 
     private function parseDate(string $path): \DateTime
     {
+        if (isset($this->cachedDate[$path])) {
+            return $this->cachedDate[$path];
+        }
+
         $exif = $this->exif($path);
 
         if (isset($exif['DateTimeOriginal']) && $time = strtotime($exif['DateTimeOriginal'])) {
-            return new \DateTime('@'.$time);
+            return $this->cachedDate[$path] = new \DateTime('@'.$time);
         }
 
         $datePatterns = [
@@ -121,11 +134,11 @@ class FilenameFormatter
         foreach ($datePatterns as $datePattern) {
             preg_match($datePattern, $path, $matches);
 
-            if ($matches) {
+            if ($matches && $matches['year'] <= date('Y')) {
                 try {
                     $date = new \DateTime("{$matches['year']}-{$matches['month']}-{$matches['day']} {$matches['hour']}:{$matches['minute']}:{$matches['second']}");
 
-                    return $date;
+                    return $this->cachedDate[$path] = $date;
                 } catch (\Exception $e) {
                     // Probably tried to parse a long number sequence, and failed with month = 13+ or something
                     continue;
@@ -133,7 +146,7 @@ class FilenameFormatter
             }
         }
 
-        return new \DateTime('@'.filemtime($path));
+        return $this->cachedDate[$path] = new \DateTime('@'.filemtime($path));
     }
 
     /*

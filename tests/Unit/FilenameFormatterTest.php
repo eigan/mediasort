@@ -61,7 +61,7 @@ class FilenameFormatterTest extends TestCase
                 'VID_20170709_121346.mp4' => 'content2',
                 '2017-07-09 12.13.46.mp4' => 'content3',
                 'VID_20170709121346.mp4' => 'content4',
-                '123456789123456789.mp4' => 'content5',
+                '123420169123456789.mp4' => 'content5',
             ]
         ]);
 
@@ -69,7 +69,7 @@ class FilenameFormatterTest extends TestCase
         $this->datedPath = $this->directory->url() . '/source/VID_20170709_121346.mp4';
         $this->datedPath2 = $this->directory->url() . '/source/2017-07-09 12.13.46.mp4';
         $this->datedPath3 = $this->directory->url() . '/source/VID_20170709121346.mp4';
-        $this->numberedPath = $this->directory->url() . '/source/123456789123456789.mp4';
+        $this->numberedPath = $this->directory->url() . '/source/123420169123456789.mp4';
         $this->formatter = new FilenameFormatter();
     }
 

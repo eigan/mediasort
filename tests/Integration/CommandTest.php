@@ -417,6 +417,36 @@ class CommandTest extends TestCase
         $this->assertFileNotExists($root . '/destination/noext (1)');
     }
 
+    public function testIncrementWithDuplicates()
+    {
+        $directory = $this->createDirectory([
+            'source' => [
+                'image.jpg' => 'content', // image.jpg
+                'nested' => [
+                    'image.jpg' => 'content2' // image (1).jpg
+                ],
+
+                'image (1).jpg' => 'content2' // skip
+            ],
+            'destination' => [
+
+            ]
+        ]);
+
+        $this->execute([
+            'source' => $directory->url() . '/source',
+            'destination' => $directory->url() . '/destination',
+
+            '--format' => ':name',
+            '-r' => true
+        ]);
+
+        $root = $directory->url();
+        $this->assertFileExists($root . '/destination/image.jpg');
+        $this->assertFileExists($root . '/destination/image (1).jpg');
+        $this->assertFileNotExists($root . '/destination/image (2).jpg');
+    }
+
     /**
      * This doesnt work with vfs.. For know we just expect to crash
      */

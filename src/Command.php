@@ -140,7 +140,12 @@ class Command extends SymfonyCommand
                     continue;
                 }
 
-                $fileDestinationPath = $this->incrementPath($fileDestinationPath);
+                $fileDestinationPath = $this->incrementPath($fileSourcePath, $fileDestinationPath);
+
+                if ($fileDestinationPath === null) {
+                    $this->publish('iterate.destinationDuplicate', [$fileSourcePath, $fileDestinationPath]);
+                    continue;
+                }
             }
 
             if (is_readable($fileSourcePath) === false) {
@@ -414,7 +419,7 @@ class Command extends SymfonyCommand
      *
      * @return string
      */
-    private function incrementPath($fileDestinationPath): string
+    private function incrementPath(string $fileSourcePath, string $fileDestinationPath): ?string
     {
         $index = 0;
 
@@ -433,6 +438,7 @@ class Command extends SymfonyCommand
         };
 
         $extension = pathinfo($fileDestinationPath, PATHINFO_EXTENSION);
+        $isNotDuplicate = false;
 
         if ($extension) {
             $fileDestinationPath = $this->replaceLastOccurrence('.'.$extension, " (1).$extension", $fileDestinationPath);
@@ -442,7 +448,11 @@ class Command extends SymfonyCommand
 
         do {
             $fileDestinationPath = $increment($fileDestinationPath, ++$index);
-        } while (file_exists($fileDestinationPath));
+        } while (file_exists($fileDestinationPath) && $isNotDuplicate = !$this->isDuplicate($fileSourcePath, $fileDestinationPath));
+
+        if ($isNotDuplicate === false && file_exists($fileDestinationPath)) {
+            return null;
+        }
 
         return $fileDestinationPath;
     }

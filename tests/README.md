@@ -32,6 +32,7 @@ so we also tests for additional scenarios.
 - `--type` (image/video/audio)
 - Recursive and not recursive
 - Increment with index
+  - Check for duplicate after adding index
 
 ##### Formatters
 - All formatters have correct values

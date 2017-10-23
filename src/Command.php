@@ -468,7 +468,14 @@ class Command extends SymfonyCommand
     private function isDuplicate(string $fileSourcePath, string $fileDestinationPath): bool
     {
         if (filesize($fileSourcePath) === filesize($fileDestinationPath)) {
-            return hash_file('md5', $fileSourcePath) === hash_file('md5', $fileDestinationPath);
+            $sourceInode = fileinode($fileSourcePath);
+            $destinationInode = fileinode($fileDestinationPath);
+
+            if ((!$sourceInode && !$destinationInode) || ($sourceInode !== $destinationInode)) {
+                return hash_file('md5', $fileSourcePath) === hash_file('md5', $fileDestinationPath);
+            }
+
+            return $sourceInode === $destinationInode;
         }
 
         return false;

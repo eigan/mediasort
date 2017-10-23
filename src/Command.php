@@ -325,7 +325,7 @@ class Command extends SymfonyCommand
     private function mkdir(string $fileDestinationPath): bool
     {
         if (file_exists(dirname($fileDestinationPath)) === false) {
-            mkdir(dirname($fileDestinationPath), 0777, true);
+            mkdir(dirname($fileDestinationPath), 0744, true);
         }
 
         if (is_writable(dirname($fileDestinationPath)) === false) {

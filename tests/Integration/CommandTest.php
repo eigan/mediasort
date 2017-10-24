@@ -589,7 +589,7 @@ class CommandTest extends TestCase
                 'myfile.jpg' => file_get_contents(__DIR__ . '/../exif.jpg'),
                 'other' => file_get_contents(__DIR__ . '/../exif.jpg'),
                 'myvideo.3gp' => 'video',
-                'myaudio.au' => '',
+                'myaudio.au' => 'audio',
                 'invalid.txt' => 'nope'
             ],
             'destination' => [
@@ -850,6 +850,25 @@ class CommandTest extends TestCase
 
         $this->assertContains('Source is not readable', $output);
         $this->assertFileExists($directory->url() . '/source/myfile.jpg');
+    }
+
+    public function testSkipEmptyFile()
+    {
+        $directory = $this->createDirectory([
+            'source' => [
+                'myfile.jpg' => '',
+            ],
+            'destination' => [
+            ]
+        ]);
+
+        $this->execute([
+            'source' => $directory->url() . '/source',
+            'destination' => $directory->url() . '/destination',
+            '--format' => ':name'
+        ]);
+
+        $this->assertFileNotExists($directory->url() . '/destination/myfile.jpg');
     }
 
     public function testSkipNomediaDirectory()

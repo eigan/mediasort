@@ -293,6 +293,10 @@ class Command extends SymfonyCommand
             return true;
         }
 
+        if (filesize($fileSourcePath) === 0) {
+            return true;
+        }
+
         $types = explode(',', $type);
 
         $extensions = $this->getTypesExtensions($types);

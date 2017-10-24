@@ -928,6 +928,29 @@ class CommandTest extends TestCase
         $this->assertContains('Mediasort doesn\'t support operations across wrapper types', $output);
     }
 
+    public function testSameInode()
+    {
+        $testDestination = __DIR__ . '/../testSameInode';
+        link(__DIR__ . '/../exif.jpg', __DIR__ . '/../exif_linked.jpg');
+        mkdir($testDestination);
+
+        $output = $this->execute([
+            'source' => __DIR__ . '/../',
+            'destination' => $testDestination,
+
+            '--format' => ':date :time',
+            '--link' => true
+        ]);
+
+        $this->assertFileExists($testDestination . '/2017-06-21 17:49:56.jpg');
+        $this->assertFileNotExists($testDestination . '/2017-06-21 17:49:56 (1).jpg');
+        $this->assertNotContains('exif_linked', $output);
+
+        unlink(__DIR__ . '/../exif_linked.jpg');
+        array_map('unlink', glob($testDestination . '/*.*'));
+        rmdir($testDestination);
+    }
+
     private function createDirectory($structure)
     {
         return vfsStream::setup('test', null, $structure);

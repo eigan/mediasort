@@ -148,6 +148,7 @@ Date is retrieved from files in the following order:
 - Date in path matching pattern:
   - YYYYMMDD_HHMMSS
   - YYYY-MM-DD HH.mm.ss
+  - YYYY-MM-DD HH:mm:ss
   - YYYYMMDDHHMMSS
   - YYYYMMDD-HHMMSS
 - Use file modification date

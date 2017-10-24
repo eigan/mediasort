@@ -852,6 +852,31 @@ class CommandTest extends TestCase
         $this->assertFileExists($directory->url() . '/source/myfile.jpg');
     }
 
+    public function testSkipNomediaDirectory()
+    {
+        $directory = $this->createDirectory([
+            'source' => [
+                'myfile.jpg' => 'content',
+                'sub' => [
+                    '.nomedia' => '',
+                    'tobeskipped.jpg' => 'thumbusually'
+                ]
+            ],
+            'destination' => [
+            ]
+        ]);
+
+        $this->execute([
+            'source' => $directory->url() . '/source',
+            'destination' => $directory->url() . '/destination',
+            '-r' => true,
+            '--format' => ':name'
+        ]);
+
+        $this->assertFileExists($directory->url() . '/destination/myfile.jpg');
+        $this->assertFileNotExists($directory->url() . '/destination/sub/tobeskipped.jpg');
+    }
+
     public function testNestedSourceDirectoryNotReadable()
     {
         $directory = $this->createDirectory([

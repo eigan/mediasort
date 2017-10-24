@@ -266,11 +266,7 @@ class Command extends SymfonyCommand
         $ignore = $input->getOption('ignore');
         $only = $input->getOption('only');
         $type = $input->getOption('only-type');
-
-        if (is_dir($fileSourcePath)) {
-            return true;
-        }
-
+        
         if ($ignore) {
             $ignoreInput = explode(',', $ignore);
             $extensions = array_map(function ($ext) {
@@ -501,7 +497,14 @@ class Command extends SymfonyCommand
         foreach (new \DirectoryIterator($root) as $fileName => $file) {
             $pathname = $file->getPathname();
 
-            $paths[date('U', filemtime($pathname)) . $pathname] = $pathname;
+            if ($file->getFilename() === '.nomedia') {
+                $dirs = $paths = [];
+                break;
+            }
+
+            if ($file->isDir() === false) {
+                $paths[date('U', filemtime($pathname)) . $pathname] = $pathname;
+            }
 
             if ($file->isDir() && !$file->isDot()) {
                 $dirs[] = $pathname;

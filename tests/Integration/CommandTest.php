@@ -438,8 +438,8 @@ class CommandTest extends TestCase
             'destination' => $directory->url() . '/destination',
 
             '--format' => ':name',
-            '-r' => true
-        ]);
+            '-r' => true,
+        ], ['verbosity' => OutputInterface::VERBOSITY_VERBOSE]);
 
         $root = $directory->url();
         $this->assertFileExists($root . '/destination/image.jpg');

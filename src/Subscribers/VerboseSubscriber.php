@@ -46,7 +46,7 @@ class VerboseSubscriber
             },
 
             'iterate.destinationDuplicate' => function (string $sourceFile, string $destinationFile) {
-                $this->output->writeln("<fg=yellow> Skipped: Duplicate ($destinationFile)</>");
+                $this->output->writeln("<fg=yellow> Skipped: Duplicate $sourceFile -> $destinationFile</>");
             },
 
             'iterate.destinationNotWritable' => function (string $destinationFile) {

@@ -140,12 +140,14 @@ class Command extends SymfonyCommand
                     continue;
                 }
 
-                $fileDestinationPath = $this->incrementPath($fileSourcePath, $fileDestinationPath);
+                $incrementedPath = $this->incrementPath($fileSourcePath, $fileDestinationPath);
 
-                if ($fileDestinationPath === null) {
+                if ($incrementedPath === null) {
                     $this->publish('iterate.destinationDuplicate', [$fileSourcePath, $fileDestinationPath]);
                     continue;
                 }
+
+                $fileDestinationPath = $incrementedPath;
             }
 
             if (is_readable($fileSourcePath) === false) {

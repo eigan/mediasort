@@ -84,7 +84,7 @@ composer global require eigan/mediasort
 ```sh
 git clone https://gitlab.com/eigan/mediasort.git
 cd mediasort
-composer install
+composer install --no-dev
 
 php -d="phar.readonly=0" bin/build.php
 chmod 755 mediasort.phar

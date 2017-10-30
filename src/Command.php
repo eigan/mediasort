@@ -508,6 +508,11 @@ class Command extends SymfonyCommand
                 break;
             }
 
+            if (strpos($file->getPath(), '/@eaDir') !== false) {
+                $dirs = $paths = [];
+                break;
+            }
+
             if ($file->isDir() === false) {
                 $paths[date('U', filemtime($pathname)) . $pathname] = $pathname;
             }

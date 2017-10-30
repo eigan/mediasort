@@ -995,6 +995,40 @@ class CommandTest extends TestCase
         rmdir($testDestination);
     }
 
+    public function testSkipSynologyEaDir()
+    {
+        $directory = $this->createDirectory([
+            'source' => [
+                'nested' => [
+                    '@eaDir' => [
+                        'meta.jpg' => 'meta'
+                    ],
+                ],
+
+                '@eaDir' => [
+                    'meta.jpg' => 'meta12'
+                ]
+            ],
+
+            'destination' => [
+
+            ]
+        ]);
+
+        $output = $this->execute([
+            'source' => $directory->url() . '/source',
+            'destination' => $directory->url() . '/destination',
+            '-r' => true,
+
+            // Put in same structure as source
+            '--format' => ':original'
+        ]);
+
+        $this->assertDirectoryNotExists($directory->url() . '/destination/@eaDir');
+        $this->assertDirectoryNotExists($directory->url() . '/destination/nested/@eaDir.jpg');
+        $this->assertNotContains('@eaDir', $output);
+    }
+
     private function createDirectory($structure)
     {
         return vfsStream::setup('test', null, $structure);

@@ -73,6 +73,7 @@ destination
 #### Requirements
 - PHP 7.0.24+
   - ext-exif. For precise meta information (dates), and more.
+  - exit-phar For composer (build from source), or to execute phar file
 
 
 #### Composer

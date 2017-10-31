@@ -144,6 +144,7 @@ Note: shortcuts cannot be combined, `-nv` will not work. This is a limitation of
 ### About
 
 #### Step by step
+```
 - Takes two arguments
   - `source`: Read files from here
   - `destination` (optional): Directory to populate. If not set, uses `source`
@@ -162,6 +163,7 @@ Note: shortcuts cannot be combined, `-nv` will not work. This is a limitation of
     - append an available "index" to the name
     
   - Move or link the media file into destination
+```
 
 #### Speed
 For a structure with 3494 files (41.6GB), it took 0.29 seconds.

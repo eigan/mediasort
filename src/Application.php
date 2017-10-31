@@ -3,6 +3,8 @@
 namespace Eigan\Mediasort;
 
 use Symfony\Component\Console\Application as SymfonyApplication;
+use Symfony\Component\Console\Input\InputInterface;
+use Symfony\Component\Console\Input\InputOption;
 
 class Application extends SymfonyApplication
 {
@@ -26,6 +28,10 @@ class Application extends SymfonyApplication
         parent::__construct('Mediasort', self::VERSION);
 
         $this->setDefaultCommand('move', true);
+
+        $this->getDefinition()->addOption(
+            new InputOption('--no-exif', '', InputOption::VALUE_NONE, 'Disable exif requirement')
+        );
     }
 
     /**
@@ -36,6 +42,15 @@ class Application extends SymfonyApplication
     public function getFilenameFormatter(): FilenameFormatter
     {
         return $this->formatter;
+    }
+
+    public function shouldUseExif(InputInterface $input)
+    {
+        if (function_exists('exif_read_data') === false || $input->getOption('no-exif')) {
+            return false;
+        }
+
+        return true;
     }
 
     /**

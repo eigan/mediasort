@@ -1029,6 +1029,28 @@ class CommandTest extends TestCase
         $this->assertNotContains('@eaDir', $output);
     }
 
+    public function testNoExif()
+    {
+        $directory = $this->createDirectory([
+            'source' => [
+                'file.jpg' => file_get_contents(__DIR__ . '/../exif.jpg'),
+            ],
+
+            'destination' => [
+
+            ]
+        ]);
+
+        $output = $this->execute([
+            'source' => $directory->url() . '/source',
+            'destination' => $directory->url() . '/destination',
+            '-r' => true,
+            '--no-exif' => true
+        ]);
+
+        $this->assertContains('Exif not enabled. Dates might be incorrect!', $output);
+    }
+
     private function createDirectory($structure)
     {
         return vfsStream::setup('test', null, $structure);

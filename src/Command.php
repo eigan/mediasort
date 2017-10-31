@@ -4,6 +4,7 @@ namespace Eigan\Mediasort;
 
 use InvalidArgumentException;
 use RuntimeException;
+use Symfony\Component\Console\Application as SymfonyApplication;
 use Symfony\Component\Console\Command\Command as SymfonyCommand;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
@@ -50,6 +51,14 @@ class Command extends SymfonyCommand
         }
 
         $this->subscribers[$key][] = $callback;
+    }
+
+    /**
+     * @return Application|SymfonyApplication
+     */
+    public function getApplication()
+    {
+        return parent::getApplication();
     }
 
     /**
@@ -118,6 +127,12 @@ class Command extends SymfonyCommand
             'source' => $source,
             'destination' => $destination
         ]);
+
+        if ($this->getApplication()->shouldUseExif($input) === false) {
+            $output->writeln('<fg=white;bg=red>!</>');
+            $output->writeln('<fg=white;bg=red>Exif not enabled. Dates might be incorrect!</>');
+            $output->writeln('<fg=white;bg=red>!</>');
+        }
 
         foreach ($this->iterate($source, $recursive) as $fileSourcePath) {
             if ($this->shouldSkip($fileSourcePath, $input)) {

@@ -19,6 +19,7 @@ a new name based on meta information extracted from the file.
  * [Usage](#usage)
     * [Options](#options)
  * [About](#about)
+    * [Step by step](#step-by-step)
     * [Speed](#speed)
     * [Date and time from files](#date-and-time-from-files)
     * [File name collision](#file-name-collision)
@@ -141,6 +142,27 @@ mv mediasort.phar /usr/local/bin/mediasort
 Note: shortcuts cannot be combined, `-nv` will not work. This is a limitation of the CLI library used.
 
 ### About
+
+#### Step by step
+- Takes two arguments
+  - `source`: Read files from here
+  - `destination` (optional): Directory to populate. If not set, uses `source`
+- Takes several options, see list above
+
+-  Start look for media files in source
+  - Skip files if:
+    - Not a media file
+    - Filtered by options
+    - Is in built in ignorelist:
+      - .nomedia, @eaDir
+  
+  - Generate a name based on the `--format` option
+  - Check if the generated name exists
+    - Check if duplicate
+    - append an available "index" to the name
+    
+  - Move or link the media file into destination
+
 #### Speed
 For a structure with 3494 files (41.6GB), it took 0.29 seconds.
 

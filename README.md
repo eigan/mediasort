@@ -135,6 +135,8 @@ mv mediasort.phar /usr/local/bin/mediasort
                     Example: --ignore="db,db-journal"
                     
 --dry-run           Do not execute move/link
+
+--no-exif           Do not read exif meta information
 ```
 Note: shortcuts cannot be combined, `-nv` will not work. This is a limitation of the CLI library used.
 

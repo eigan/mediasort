@@ -988,7 +988,7 @@ class CommandTest extends TestCase
 
         $this->assertFileExists($testDestination . '/2017-06-21 17:49:56.jpg');
         $this->assertFileNotExists($testDestination . '/2017-06-21 17:49:56 (1).jpg');
-        $this->assertNotContains('exif_linked', $output);
+        $this->assertContains('Skipped: Duplicate', $output);
 
         unlink(__DIR__ . '/../exif_linked.jpg');
         array_map('unlink', glob($testDestination . '/*.*'));

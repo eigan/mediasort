@@ -150,15 +150,14 @@ class Command extends SymfonyCommand
 
             if (file_exists($fileDestinationPath)) {
                 if ($this->isDuplicate($fileSourcePath, $fileDestinationPath)) {
-                    $this->publish('iterate.destinationDuplicate', [$fileSourcePath, $fileDestinationPath]);
-
+                    $output->writeln("<fg=yellow> Skipped: Duplicate $fileSourcePath -> $fileDestinationPath</>");
                     continue;
                 }
 
                 $incrementedPath = $this->incrementPath($fileSourcePath, $fileDestinationPath);
 
                 if ($incrementedPath === null) {
-                    $this->publish('iterate.destinationDuplicate', [$fileSourcePath, $fileDestinationPath]);
+                    $output->writeln("<fg=yellow> Skipped: Duplicate $fileSourcePath -> $fileDestinationPath</>");
                     continue;
                 }
 

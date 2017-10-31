@@ -722,6 +722,7 @@ class CommandTest extends TestCase
         ], ['interactive' => false]);
 
         $this->assertFileExists($directory->url() . '/destination/other.jpg');
+        $this->assertFileNotExists($directory->url() . '/destination/myfile.jpg');
     }
 
     public function testDestinationNotReadable()

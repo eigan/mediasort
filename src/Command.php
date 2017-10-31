@@ -39,7 +39,16 @@ class Command extends SymfonyCommand
     }
 
     /**
-     * Subscribe to the actions emitted
+     * @return Application|SymfonyApplication
+     */
+    public function getApplication()
+    {
+        return parent::getApplication();
+    }
+
+    /**
+     * Subscribe to the events
+     * Just used by the verbose subscriber
      *
      * @param $key
      * @param callable $callback
@@ -51,14 +60,6 @@ class Command extends SymfonyCommand
         }
 
         $this->subscribers[$key][] = $callback;
-    }
-
-    /**
-     * @return Application|SymfonyApplication
-     */
-    public function getApplication()
-    {
-        return parent::getApplication();
     }
 
     /**
@@ -92,7 +93,9 @@ class Command extends SymfonyCommand
     {
         $symfonyStyle = new SymfonyStyle($input, $output);
 
-        $this->addStandardSubcribers($input, $output);
+        if ($output->isVerbose()) {
+            $this->addVerboseSubscriber($output);
+        }
 
         $this->publish('start', [$input]);
 
@@ -165,7 +168,6 @@ class Command extends SymfonyCommand
             }
 
             if (is_readable($fileSourcePath) === false) {
-                $this->publish('iterate.sourceDisappeared', [$fileSourcePath]);
                 continue;
             }
 
@@ -179,8 +181,6 @@ class Command extends SymfonyCommand
 
             if ($shouldLink) {
                 if ($symfonyStyle->confirm('Create hardlink?') && !$dryRyn) {
-                    $this->publish('iterate.link', [$fileSourcePath, $fileDestinationPath]);
-
                     $destinationIsOk = $this->mkdir($fileDestinationPath);
 
                     if ($destinationIsOk) {
@@ -189,8 +189,6 @@ class Command extends SymfonyCommand
                 }
             } else {
                 if ($symfonyStyle->confirm('Move file?') && !$dryRyn) {
-                    $this->publish('iterate.move', [$fileSourcePath, $fileDestinationPath]);
-
                     $destinationIsOk = $this->mkdir($fileDestinationPath);
 
                     if ($destinationIsOk) {
@@ -198,18 +196,14 @@ class Command extends SymfonyCommand
                     }
                 }
             }
-
-            $this->publish('iterate.end', [$fileSourcePath, $fileDestinationPath]);
         }
     }
 
-    private function addStandardSubcribers(InputInterface $input, OutputInterface $output)
-    {
-        if ($output->isVerbose()) {
-            $this->addVerboseSubscriber($output);
-        }
-    }
-
+    /**
+     * Just wanted to move some of the heavy verbose stuff away from this file
+     *
+     * @param OutputInterface $output
+     */
     private function addVerboseSubscriber(OutputInterface $output)
     {
         $verboseSubscriber = new Subscribers\VerboseSubscriber($output);
@@ -219,6 +213,13 @@ class Command extends SymfonyCommand
         }
     }
 
+    /**
+     * Publish and event
+     * Just used by the verbose subscriber
+     *
+     * @param $key
+     * @param $parts
+     */
     private function publish($key, $parts)
     {
         if (isset($this->subscribers[$key])) {
@@ -314,9 +315,7 @@ class Command extends SymfonyCommand
         }
 
         $types = explode(',', $type);
-
         $extensions = $this->getTypesExtensions($types);
-
         $extension = strtolower(pathinfo($fileSourcePath, PATHINFO_EXTENSION));
 
         if (in_array($extension, $extensions, true)) {
@@ -354,7 +353,7 @@ class Command extends SymfonyCommand
     }
 
     /**
-     * Litle utility to get the allowed extenstions given the $types sent via --only-type
+     * Small utility to get the allowed extensions given the $types sent via --only-type
      *
      * @param array $types
      *
@@ -429,7 +428,7 @@ class Command extends SymfonyCommand
     }
 
     /**
-     * Given a path, increment until the file doesnt exist anymore
+     * Given a path, increment until we get a usable filename
      *
      * @param $fileDestinationPath
      *
@@ -579,7 +578,7 @@ class Command extends SymfonyCommand
     }
 
     /**
-     * Replace last occurens of $search
+     * Replace last occurrence of $search
      *
      * @param string $search
      * @param string $replace

@@ -44,10 +44,10 @@ class VerboseSubscriber
                 $this->output->writeln("Destination: $destination");
                 $this->output->writeln('');
             },
-            
+
             'iterate.destinationNotWritable' => function (string $destinationFile) {
                 $this->output->writeln("<fg=yellow> Skipped: Not writable ($destinationFile)");
-            }
+            },
         ];
     }
 }

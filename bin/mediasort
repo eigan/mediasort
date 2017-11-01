@@ -1,6 +1,11 @@
 #!/usr/bin/env php
 <?php
 
+if (version_compare(PHP_VERSION, '7.0', '<')) {
+    echo "Mediasort requires PHP 7\n";
+    exit(1);
+}
+
 // installed via composer?
 $autoload = __DIR__.'/../../../autoload.php';
 

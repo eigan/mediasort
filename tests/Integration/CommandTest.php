@@ -206,10 +206,10 @@ class CommandTest extends TestCase
             'source' => $directory->url() . '/source',
             'destination' => $directory->url() . '/destination',
 
-            '--format' => ':year/:month/:name'
+            '--format' => ':name'
         ]);
 
-        $destinationPath = $directory->url() . '/destination/2017/10 - October/myfile.jpg';
+        $destinationPath = $directory->url() . '/destination/myfile.jpg';
         $this->assertFileNotExists($directory->url() . '/source/myfile.jpg');
         $this->assertFileExists($destinationPath);
 
@@ -235,12 +235,12 @@ class CommandTest extends TestCase
             'destination' => $directory->url() . '/destination',
 
             '-r' => true,
-            '--format' => ':year/:month/:day'
+            '--format' => 'duplicate'
         ], ['interactive' => false, 'verbosity' => OutputInterface::VERBOSITY_VERBOSE]);
 
-        $destinationPath = $directory->url() . '/destination/2017/10 - October/'.date('d').'.jpg';
+        $destinationPath = $directory->url() . '/destination/duplicate.jpg';
 
-        $this->assertFileNotExists($directory->url() . '/source/myfile.jpg');
+        $this->assertFileNotExists($directory->url() . '/source/duplicate.jpg');
         $this->assertFileExists($directory->url() . '/source/nested/OtherFilename.jpg');
         $this->assertEquals('content', file_get_contents($directory->url() . '/source/nested/OtherFilename.jpg'));
 

@@ -87,7 +87,7 @@ class Command extends SymfonyCommand
      * @param InputInterface  $input
      * @param OutputInterface $output
      *
-     * @return void
+     * @return int
      */
     protected function execute(InputInterface $input, OutputInterface $output)
     {
@@ -106,7 +106,7 @@ class Command extends SymfonyCommand
 
         if (empty($type = $input->getOption('only-type'))) {
             $output->writeln('<fg=white;bg=red>Missing value for --only-type</>');
-            return;
+            return 1;
         }
 
         try {
@@ -123,7 +123,7 @@ class Command extends SymfonyCommand
             });
         } catch (InvalidArgumentException $e) {
             $output->write($e->getMessage());
-            return;
+            return 1;
         }
 
         $this->publish('paths.resolved', [
@@ -197,6 +197,8 @@ class Command extends SymfonyCommand
                 }
             }
         }
+
+        return 0;
     }
 
     /**

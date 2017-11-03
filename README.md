@@ -138,6 +138,9 @@ mv mediasort.phar /usr/local/bin/mediasort
 --dry-run           Do not execute move/link
 
 --no-exif           Do not read exif meta information
+
+--log-path          Specify where to put mediasort.log
+                    Default: null (no logging)
 ```
 Note: shortcuts cannot be combined, `-nv` will not work. This is a limitation of the CLI library used.
 

@@ -1075,6 +1075,88 @@ class CommandTest extends TestCase
         $this->assertContains('Exif not enabled. Dates might be incorrect!', $output);
     }
 
+    public function testLogPath()
+    {
+        $directory = $this->createDirectory([
+            'source' => [
+                'myfile.jpg' => 'content'
+            ],
+
+            'destination' => [
+
+            ]
+        ]);
+
+        $output = $this->execute([
+            'source' => $directory->url() . '/source',
+            'destination' => $directory->url() . '/destination',
+            '-r' => true,
+
+            // Put in same structure as source
+            '--format' => ':name',
+            '--log-path' => $directory->url()
+        ]);
+
+        $this->assertFileExists($directory->url() . '/mediasort.log');
+        $this->assertStringEqualsFile($directory->url() . '/mediasort.log', 'move "'.$directory->url().'/source/myfile.jpg" "'.$directory->url()."/destination/myfile.jpg\"\n");
+    }
+
+    public function testLogPathNotExists()
+    {
+        $directory = $this->createDirectory([
+            'source' => [
+                'myfile.jpg' => 'content'
+            ],
+
+            'destination' => [
+
+            ]
+        ]);
+
+        $output = $this->execute([
+            'source' => $directory->url() . '/source',
+            'destination' => $directory->url() . '/destination',
+            '-r' => true,
+
+            // Put in same structure as source
+            '--format' => ':name',
+            '--log-path' => $directory->url() . 'invalid'
+        ]);
+
+        $this->assertContains('Log path does not exist: ['.$directory->url().'invalid]', $output);
+    }
+
+    public function testLogPathNoPermission()
+    {
+        $directory = $this->createDirectory([
+            'source' => [
+                'myfile.jpg' => 'content'
+            ],
+
+            'destination' => [
+
+            ],
+
+            'logs' => [
+            ]
+        ]);
+
+        chmod($directory->url() . '/logs', '0200');
+        $directory->getChild('logs')->chown(VfsStream::OWNER_ROOT);
+
+        $output = $this->execute([
+            'source' => $directory->url() . '/source',
+            'destination' => $directory->url() . '/destination',
+            '-r' => true,
+
+            // Put in same structure as source
+            '--format' => ':name',
+            '--log-path' => $directory->url() . '/logs'
+        ]);
+
+        $this->assertContains('Log path is not writable: ['.$directory->url().'/logs]', $output);
+    }
+
     private function createDirectory($structure)
     {
         return vfsStream::setup('test', null, $structure);

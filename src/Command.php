@@ -3,6 +3,9 @@
 namespace Eigan\Mediasort;
 
 use InvalidArgumentException;
+use Monolog\Formatter\LineFormatter;
+use Monolog\Handler\StreamHandler;
+use Monolog\Logger;
 use RuntimeException;
 use Symfony\Component\Console\Application as SymfonyApplication;
 use Symfony\Component\Console\Command\Command as SymfonyCommand;
@@ -20,6 +23,11 @@ class Command extends SymfonyCommand
     private $formatter;
 
     /**
+     * @var Logger
+     */
+    private $logger;
+
+    /**
      * @var string
      */
     private $rootPath;
@@ -29,11 +37,12 @@ class Command extends SymfonyCommand
      */
     private $subscribers;
 
-    public function __construct(FilenameFormatter $formatter, string $rootPath = '')
+    public function __construct(FilenameFormatter $formatter, Logger $logger, string $rootPath = '')
     {
         parent::__construct();
 
         $this->formatter = $formatter;
+        $this->logger = $logger;
         $this->rootPath = $rootPath;
         $this->subscribers = [];
     }
@@ -79,6 +88,7 @@ class Command extends SymfonyCommand
         $this->addOption('ignore', '', InputOption::VALUE_OPTIONAL, 'Ignore files with extension');
         $this->addOption('only-type', '', InputOption::VALUE_REQUIRED, 'Only files with specific type', 'audio,image,video');
         $this->addOption('dry-run', '', InputOption::VALUE_NONE, 'Do not move the files');
+        $this->addOption('log-path', '', InputOption::VALUE_OPTIONAL, 'Path to where put log');
     }
 
     /**
@@ -103,6 +113,15 @@ class Command extends SymfonyCommand
         $shouldLink = $input->getOption('link');
         $recursive = $input->getOption('recursive');
         $dryRyn = $input->getOption('dry-run');
+
+        if ($input->getOption('log-path')) {
+            try {
+                $this->setupLogger($input->getOption('log-path'));
+            } catch (InvalidArgumentException $e) {
+                $output->writeln($e->getMessage());
+                return 1;
+            }
+        }
 
         if (empty($type = $input->getOption('only-type'))) {
             $output->writeln('<fg=white;bg=red>Missing value for --only-type</>');
@@ -181,12 +200,14 @@ class Command extends SymfonyCommand
 
             $output->writeln(" <fg=green>+ $fileDestinationPath</>");
 
+            $success = false;
+
             if ($shouldLink) {
                 if ($symfonyStyle->confirm('Create hardlink?') && !$dryRyn) {
                     $destinationIsOk = $this->mkdir($fileDestinationPath);
 
                     if ($destinationIsOk) {
-                        link($fileSourcePath, $fileDestinationPath);
+                        $success = link($fileSourcePath, $fileDestinationPath);
                     }
                 }
             } else {
@@ -194,13 +215,35 @@ class Command extends SymfonyCommand
                     $destinationIsOk = $this->mkdir($fileDestinationPath);
 
                     if ($destinationIsOk) {
-                        rename($fileSourcePath, $fileDestinationPath);
+                        $success = rename($fileSourcePath, $fileDestinationPath);
                     }
                 }
+            }
+            
+            if ($success) {
+                $this->logger->info(($shouldLink ? 'link' : 'move').' "'.$fileSourcePath.'" "'.$fileDestinationPath.'"');
             }
         }
 
         return 0;
+    }
+
+    private function setupLogger(string $logPath)
+    {
+        if (file_exists($logPath) === false) {
+            throw new \InvalidArgumentException("Log path does not exist: [$logPath]");
+        }
+
+        if (is_writable($logPath) === false) {
+            throw new \InvalidArgumentException("Log path is not writable: [$logPath]");
+        }
+
+        $logPath .= '/mediasort.log';
+
+        $streamHandler = new StreamHandler($logPath);
+        $streamHandler->setFormatter(new LineFormatter("%message%\n"));
+
+        $this->logger->setHandlers([$streamHandler]);
     }
 
     /**

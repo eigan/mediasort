@@ -114,6 +114,29 @@ class CommandTest extends TestCase
         $this->assertEquals(0, $this->commandTester->getStatusCode());
     }
 
+    public function testRemoveTrailingSlash()
+    {
+        $directory = $this->createDirectory([
+            'source' => [
+                'myfile.jpg' => 'content'
+            ],
+
+            'destination' => [
+
+            ]
+        ]);
+
+        $output = $this->execute([
+            'source' => $directory->url() . '/source/',
+            'destination' => $directory->url() . '/destination/',
+
+            '--format' => ':name'
+        ]);
+
+        $this->assertContains('test/source/myfile.jpg', $output);
+        $this->assertContains('test/destination/myfile.jpg', $output);
+    }
+
     public function testResolveRelativeWithDots()
     {
         $root = $this->createDirectory([

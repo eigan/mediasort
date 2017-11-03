@@ -263,6 +263,9 @@ class Command extends SymfonyCommand
             throw new InvalidArgumentException("Mediasort doesn't support operations across wrapper types");
         }
 
+        $source = rtrim($source, '/');
+        $destination = rtrim($destination, '/');
+
         if (is_readable($source) === false) {
             throw new InvalidArgumentException('Source is not readable');
         }

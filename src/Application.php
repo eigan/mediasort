@@ -35,7 +35,7 @@ class Application extends SymfonyApplication
     }
 
     /**
-     * Get the formatter used for filname formatting
+     * Get the formatter used for filename formatting
      *
      * @return FilenameFormatter
      */

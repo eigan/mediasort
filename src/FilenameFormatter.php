@@ -26,9 +26,20 @@ class FilenameFormatter
      */
     private $cachedDate = [];
 
-    public function __construct()
+    /**
+     * @var bool
+     */
+    private $useExif;
+
+    public function __construct($useExif = true)
     {
+        $this->useExif = $useExif;
         $this->setupFormatters();
+    }
+
+    public function setUseExif(bool $useExif)
+    {
+        $this->useExif = $useExif;
     }
 
     /**
@@ -94,6 +105,10 @@ class FilenameFormatter
      */
     private function exif(string $file): array
     {
+        if ($this->useExif === false) {
+            return [];
+        }
+        
         if (isset($this->cachedExif[$file])) {
             return $this->cachedExif[$file];
         }

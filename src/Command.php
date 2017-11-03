@@ -135,6 +135,8 @@ class Command extends SymfonyCommand
             $output->writeln('<fg=white;bg=red>!</>');
             $output->writeln('<fg=white;bg=red>Exif not enabled. Dates might be incorrect!</>');
             $output->writeln('<fg=white;bg=red>!</>');
+
+            $this->formatter->setUseExif(false);
         }
 
         foreach ($this->iterate($source, $recursive) as $fileSourcePath) {

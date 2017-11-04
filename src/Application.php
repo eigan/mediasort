@@ -5,12 +5,13 @@ namespace Eigan\Mediasort;
 use Monolog\Handler\NullHandler;
 use Monolog\Logger;
 use Symfony\Component\Console\Application as SymfonyApplication;
+use Symfony\Component\Console\Command\HelpCommand;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 
 class Application extends SymfonyApplication
 {
-    const VERSION = 'dev';
+    const VERSION = '2.0';
 
     /**
      * @var string
@@ -33,8 +34,7 @@ class Application extends SymfonyApplication
 
         $this->rootPath = $rootPath;
         $this->formatter = new FilenameFormatter();
-        $this->logger = new Logger('mediasort');
-        $this->logger->pushHandler(new NullHandler());
+        $this->logger = new Logger('mediasort', [new NullHandler()]);
 
         $this->setDefaultCommand('move', true);
 
@@ -67,12 +67,9 @@ class Application extends SymfonyApplication
      */
     protected function getDefaultCommands()
     {
-        $parent =  parent::getDefaultCommands();
-
-        $own = [
+        return [
+            new HelpCommand(),
             new Command($this->formatter, $this->logger, $this->rootPath)
         ];
-
-        return array_merge($parent, $own);
     }
 }

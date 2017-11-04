@@ -82,12 +82,12 @@ class Command extends SymfonyCommand
         $this->addArgument('destination', InputArgument::OPTIONAL);
 
         $this->addOption('format', '', InputOption::VALUE_OPTIONAL, 'The format', ':year/:month/:date :time');
-        $this->addOption('only', '', InputOption::VALUE_OPTIONAL, 'Limit by extensions');
-        $this->addOption('link', '', InputOption::VALUE_NONE, 'Use hardlink instead of moving');
-        $this->addOption('recursive', 'r', InputOption::VALUE_NONE, 'Go recursive');
+        $this->addOption('only', '', InputOption::VALUE_OPTIONAL, 'Comma separated list of extensions');
+        $this->addOption('link', '', InputOption::VALUE_NONE, 'Use hardlink instead of move');
+        $this->addOption('recursive', 'r', InputOption::VALUE_NONE, 'Scan for files in subdirectories');
         $this->addOption('ignore', '', InputOption::VALUE_OPTIONAL, 'Ignore files with extension');
         $this->addOption('only-type', '', InputOption::VALUE_REQUIRED, 'Only files with specific type', 'audio,image,video');
-        $this->addOption('dry-run', '', InputOption::VALUE_NONE, 'Do not move the files');
+        $this->addOption('dry-run', '', InputOption::VALUE_NONE, 'Do not move or link files');
         $this->addOption('log-path', '', InputOption::VALUE_OPTIONAL, 'Path to where put log');
     }
 

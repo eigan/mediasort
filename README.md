@@ -3,8 +3,6 @@
 
 ## Mediasort
 
-**Currently in BETA:** Please use `--link` option, and always keep backup.
-
 A batch rename tool for media files (audio, video and images). Move, or create an hardlink, with
 a new name based on meta information extracted from the file. 
 
@@ -14,16 +12,20 @@ a new name based on meta information extracted from the file.
 
  * [Example](#example)
  * [Installation](#installation)
+    * [Requirements](#requirements)
     * [Composer](#composer)
     * [Build from source](#build-from-source)
+    * [Synology](#synology)
  * [Usage](#usage)
     * [Options](#options)
  * [About](#about)
-    * [Step by step](#step-by-step)
     * [Speed](#speed)
     * [Date and time from files](#date-and-time-from-files)
     * [File name collision](#file-name-collision)
-
+    * [Step by step (internal)](#step-by-step-internal)
+ * [Tips](#tips)
+    * [Remove empty directories](#remove-empty-directories)
+    
 ### Example
 
 ```
@@ -93,6 +95,15 @@ chmod 755 mediasort.phar
 mv mediasort.phar /usr/local/bin/mediasort
 ```
 
+#### Synology
+- Install PHP7 and WebStation, enable phar support for PHP7.
+- Login via SSH
+- Download the latest mediasort.phar from releases by using `wget`
+- Now you should be able to `php70 mediasort.phar`
+- You can also create a bin file in /usr/local/bin/
+```
+php70 /path/to/mediasort.phar "$@"
+```
 
 ### Usage
 #### Options
@@ -146,7 +157,25 @@ Note: shortcuts cannot be combined, `-nv` will not work. This is a limitation of
 
 ### About
 
-#### Step by step
+#### Speed
+For a structure with 3494 files (41.6GB), it took 0.29 seconds.
+
+#### Date and time from files
+Date is retrieved from files in the following order:
+- exif meta information
+- Date in path matching pattern:
+  - YYYYMMDD_HHMMSS
+  - YYYY-MM-DD HH.mm.ss
+  - YYYY-MM-DD HH:mm:ss
+  - YYYYMMDDHHMMSS
+  - YYYYMMDD-HHMMSS
+- Use file modification date
+  - The date might not always be correct!
+
+#### File name collision
+When a file is identical, it gets ignored, otherwise we append an index to the filename.
+
+#### Step by step (internal)
 ```
 - Takes two arguments
   - `source`: Read files from here
@@ -168,20 +197,22 @@ Note: shortcuts cannot be combined, `-nv` will not work. This is a limitation of
   - Move or link the media file into destination
 ```
 
-#### Speed
-For a structure with 3494 files (41.6GB), it took 0.29 seconds.
+### Tips
+#### Remove empty directories
+```
+find . -type d -empty -delete
+```
 
-#### Date and time from files
-Date is retrieved from files in the following order:
-- exif meta information
-- Date in path matching pattern:
-  - YYYYMMDD_HHMMSS
-  - YYYY-MM-DD HH.mm.ss
-  - YYYY-MM-DD HH:mm:ss
-  - YYYYMMDDHHMMSS
-  - YYYYMMDD-HHMMSS
-- Use file modification date
-  - The date might not always be correct!
 
-#### File name collision
-When a file is identical, it gets ignored, otherwise we append an index to the filename.
+### Todo
+These are things I would like to do sometime, but I don't really need right now.
+- Split code into more files (Single Responsibility Pattern).
+- More formatters
+  - `:type-s`
+  - `:exif(ExifProp)`
+  - `:path` full original path
+- `--filter=":size>10 & :name~/regex/ & :weekday=monday`
+- I18n
+- Add to aur
+- Test Mac (travis) / Windows (tea-ci)
+- symlink

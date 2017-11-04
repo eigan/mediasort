@@ -675,14 +675,16 @@ class CommandTest extends TestCase
             ]
         ]);
 
-        chmod($directory->url() . '/source/nested/file.jpg', 500);
-        chmod($directory->url() . '/source/nested', 500);
+        $directory->getChild('source')->getChild('nested')->getChild('file.jpg')->chown(VfsStream::OWNER_ROOT);
+        $directory->getChild('source')->getChild('nested')->getChild('file.jpg')->chmod(0700);
 
         $output = $this->execute([
             'source' => $directory->url() . '/source',
             'destination' => $directory->url() . '/destination',
+            '-r' => true
         ], ['interactive' => false]);
 
+        
         $this->assertFileExists($directory->url() . '/source/nested/file.jpg');
         $this->assertFileNotExists($directory->url() . '/destination/nested/file.jpg');
     }
@@ -752,7 +754,7 @@ class CommandTest extends TestCase
     {
         $directory = $this->createDirectory([
             'source' => [
-                    'myfile.jpg' => 'content',
+                'myfile.jpg' => 'content',
             ],
             'destination' => [
             ]
@@ -766,6 +768,7 @@ class CommandTest extends TestCase
         ]);
 
         $this->assertFileExists($directory->url() . '/source/myfile.jpg');
+        $this->assertContains('Destination is not writable', $output);
     }
 
     public function testDestinationNotWritable()
@@ -786,6 +789,7 @@ class CommandTest extends TestCase
         ]);
 
         $this->assertFileExists($directory->url() . '/source/myfile.jpg');
+        $this->assertContains('Destination is not writable', $output);
     }
 
     public function testDestinationFileNotWritable()
@@ -817,7 +821,9 @@ class CommandTest extends TestCase
         ]);
 
         $this->assertFileExists($directory->url() . '/source/nested/myfile.jpg');
+        $this->assertFileNotExists($directory->url() . '/destination/nested/myfile.jpg');
         $this->assertFileExists($directory->url() . '/destination/sub/other.jpg');
+        $this->assertContains('Skipped: Not writable', $output);
     }
 
     public function testDestinationSubDirectoryNotWritable()
@@ -1141,8 +1147,8 @@ class CommandTest extends TestCase
             ]
         ]);
 
-        chmod($directory->url() . '/logs', '0200');
         $directory->getChild('logs')->chown(VfsStream::OWNER_ROOT);
+        $directory->getChild('logs')->chmod(0200);
 
         $output = $this->execute([
             'source' => $directory->url() . '/source',

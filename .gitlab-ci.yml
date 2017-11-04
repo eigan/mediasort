@@ -17,6 +17,7 @@ before_script:
   - php composer-setup.php > /dev/null
   - php -r "unlink('composer-setup.php'); unlink('installer.sig');"
   - php composer.phar install --no-progress > /dev/null
+  - useradd testuser
 
 cache:
   paths:
@@ -28,4 +29,4 @@ php:7.0:
   script:
     - php vendor/bin/phpstan analyse --no-progress -l 7 src
     - echo "Running PHPUnit Tests"
-    - php vendor/bin/phpunit --colors="never" --coverage-text
+    - su testuser -c "php vendor/bin/phpunit --colors="never" --coverage-text"

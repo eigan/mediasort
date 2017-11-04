@@ -208,6 +208,8 @@ class Command extends SymfonyCommand
 
                     if ($destinationIsOk) {
                         $success = link($fileSourcePath, $fileDestinationPath);
+                    } else {
+                        $output->writeln("<fg=yellow> Skipped: Not writable ($fileDestinationPath)");
                     }
                 }
             } else {
@@ -216,6 +218,8 @@ class Command extends SymfonyCommand
 
                     if ($destinationIsOk) {
                         $success = rename($fileSourcePath, $fileDestinationPath);
+                    } else {
+                        $output->writeln("<fg=yellow> Skipped: Not writable ($fileDestinationPath)");
                     }
                 }
             }
@@ -394,8 +398,6 @@ class Command extends SymfonyCommand
         }
 
         if (is_writable(dirname($fileDestinationPath)) === false) {
-            $this->publish('iterate.destinationNotWritable', [$fileDestinationPath]);
-
             return false;
         }
 

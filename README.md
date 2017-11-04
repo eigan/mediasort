@@ -15,6 +15,7 @@ a new name based on meta information extracted from the file.
     * [Requirements](#requirements)
     * [Composer](#composer)
     * [Build from source](#build-from-source)
+    * [Arch Linux](#arch-linux)
     * [Synology](#synology)
  * [Usage](#usage)
     * [Options](#options)
@@ -94,6 +95,9 @@ php -d="phar.readonly=0" bin/build.php
 chmod 755 mediasort.phar
 mv mediasort.phar /usr/local/bin/mediasort
 ```
+
+#### Arch Linux
+Mediasort is available through AUR: [mediasort](https://aur.archlinux.org/packages/mediasort/).
 
 #### Synology
 - Install PHP7 and WebStation, enable phar support for PHP7.

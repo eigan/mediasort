@@ -6,6 +6,13 @@ if (version_compare(PHP_VERSION, '7.0', '<')) {
     exit(1);
 }
 
+/**
+ * Override the timezone. Most exif data is stored without timezones, so UTC
+ * is assumed. When a user have a different timezone set, will these times
+ * be converted into that timezone.
+ */
+date_default_timezone_set('UTC');
+
 // installed via composer?
 $autoload = __DIR__.'/../../../autoload.php';
 

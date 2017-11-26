@@ -93,7 +93,12 @@ class FilenameFormatter
             };
         }
 
-        return preg_replace_callback_array($callbacks, $format);
+        $result = preg_replace_callback_array($callbacks, $format);
+
+        $this->cachedDate = [];
+        $this->cachedExif = [];
+
+        return $result;
     }
 
     /**

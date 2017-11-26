@@ -140,6 +140,10 @@ class FilenameFormatter
             return $this->cachedDate[$path] = new \DateTime('@'.$time);
         }
 
+        if (isset($exif['DateTime']) && $time = strtotime($exif['DateTime'])) {
+            return $this->cachedDate[$path] = new \DateTime('@'.$time);
+        }
+
         $datePatterns = [
             "/(?P<year>\d{4})(?P<month>\d{2})(?P<day>\d{2})_(?P<hour>\d{2})(?P<minute>\d{2})(?P<second>\d{2})/",
             "/(?P<year>\d{4})-(?P<month>\d{2})-(?P<day>\d{2}) (?P<hour>\d{2}).(?P<minute>\d{2}).(?P<second>\d{2})/",

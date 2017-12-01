@@ -2,6 +2,7 @@
 
 namespace Eigan\Mediasort\Tests\Unit;
 
+use Eigan\Mediasort\File;
 use Eigan\Mediasort\FilenameFormatter;
 use org\bovigo\vfs\vfsStream;
 use org\bovigo\vfs\vfsStreamDirectory;
@@ -97,12 +98,12 @@ class FilenameFormatterTest extends TestCase
         $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessage('No valid formats');
 
-        $this->formatter->format('invalid', $this->filePath);
+        $this->formatter->format('invalid', new File($this->filePath));
     }
 
     public function testInvalidFormat()
     {
-        $this->assertEquals('myfile:invalid', $this->formatter->format(':name:invalid', $this->filePath));
+        $this->assertEquals('myfile:invalid', $this->formatter->format(':name:invalid', new File($this->filePath)));
     }
 
     public function testFailingFormat()
@@ -114,105 +115,75 @@ class FilenameFormatterTest extends TestCase
         $this->expectException(\RuntimeException::class);
         $this->expectExceptionMessage('The format: [:crash] failed with message: I am a crasher!');
 
-        $this->formatter->format(':crash', $this->filePath);
-    }
-
-    public function testDate()
-    {
-        $date = strtotime('-1 month 4 days');
-        touch($this->filePath, $date);
-
-        $this->assertEquals(date('Y-m-d', $date), $this->formatter->format(':date', $this->filePath));
-    }
-
-    public function testTime()
-    {
-        $time = strtotime('-1 month 4 days');
-        touch($this->filePath, $time);
-
-        $this->assertEquals(date('H:i:s', $time), $this->formatter->format(':time', $this->filePath));
+        $this->formatter->format(':crash', new File($this->filePath));
     }
 
     public function testDirname()
     {
-        $this->assertEquals('source', $this->formatter->format(':dirname', $this->filePath));
-    }
-
-    public function testMonth()
-    {
-        $date = strtotime('-1 month');
-        touch($this->filePath, $date);
-
-        $this->assertEquals(date('m - F', $date), $this->formatter->format(':month', $this->filePath));
-    }
-
-    public function testMonthstring()
-    {
-        $date = strtotime('-1 month');
-        touch($this->filePath, $date);
-
-        $this->assertEquals(date('F', $date), $this->formatter->format(':monthname', $this->filePath));
+        $this->assertEquals('source', $this->formatter->format(':dirname', new File($this->filePath)));
     }
 
     public function testName()
     {
-        $this->assertEquals('myfile', $this->formatter->format(':name', $this->filePath));
+        $this->assertEquals('myfile', $this->formatter->format(':name', new File($this->filePath)));
     }
 
     public function testTimeFromPath()
     {
-        $this->assertEquals('12:13:46', $this->formatter->format(':time', $this->datedPath));
-        $this->assertEquals('12:13:46', $this->formatter->format(':time', $this->datedPath2));
-        $this->assertEquals('12:13:46', $this->formatter->format(':time', $this->datedPath3));
-        $this->assertEquals('22:27:41', $this->formatter->format(':time', $this->datedPath4));
-        $this->assertEquals('12:13:46', $this->formatter->format(':time', $this->datedPath5));
+        $this->assertEquals('12:13:46', $this->formatter->format(':time', new File($this->datedPath)));
+        $this->assertEquals('12:13:46', $this->formatter->format(':time', new File($this->datedPath2)));
+        $this->assertEquals('12:13:46', $this->formatter->format(':time', new File($this->datedPath3)));
+        $this->assertEquals('22:27:41', $this->formatter->format(':time', new File($this->datedPath4)));
+        $this->assertEquals('12:13:46', $this->formatter->format(':time', new File($this->datedPath5)));
 
-        $date = strtotime('-1 month');
-        touch($this->numberedPath, $date);
+        $this->expectException(\RuntimeException::class);
+        $this->expectExceptionMessage('The format: [:time] failed with message: Failed to find date.');
 
-        $this->assertEquals(date('H:i:s', $date), $this->formatter->format(':time', $this->numberedPath));
+        $this->formatter->format(':time', new File($this->numberedPath));
     }
 
     public function testDateFromPath()
     {
-        $this->assertEquals('2017-07-09', $this->formatter->format(':date', $this->datedPath));
-        $this->assertEquals('2017-07-09', $this->formatter->format(':date', $this->datedPath2));
-        $this->assertEquals('2017-07-09', $this->formatter->format(':date', $this->datedPath3));
-        $this->assertEquals('2017-05-18', $this->formatter->format(':date', $this->datedPath4));
-        $this->assertEquals('2017-07-09', $this->formatter->format(':date', $this->datedPath5));
+        $this->assertEquals('2017-07-09', $this->formatter->format(':date', new File($this->datedPath)));
+        $this->assertEquals('2017-07-09', $this->formatter->format(':date', new File($this->datedPath2)));
+        $this->assertEquals('2017-07-09', $this->formatter->format(':date', new File($this->datedPath3)));
+        $this->assertEquals('2017-05-18', $this->formatter->format(':date', new File($this->datedPath4)));
+        $this->assertEquals('2017-07-09', $this->formatter->format(':date', new File($this->datedPath5)));
 
-        $date = strtotime('-1 month');
-        touch($this->numberedPath, $date);
+        $this->expectException(\RuntimeException::class);
+        $this->expectExceptionMessage('The format: [:date] failed with message: Failed to find date.');
 
-        $this->assertEquals(date('Y-m-d', $date), $this->formatter->format(':date', $this->numberedPath));
+        $this->formatter->format(':date', new File($this->numberedPath));
     }
 
     public function testExifTime()
     {
         $this->setupExif();
 
-        $this->assertEquals('17:49:56', $this->formatter->format(':time', __DIR__ . '/../exif.jpg'));
+        $this->assertEquals('17:49:56', $this->formatter->format(':time', new File(__DIR__ . '/../exif.jpg')));
+        $this->assertEquals('17:49:56', $this->formatter->format(':time', new File(__DIR__ . '/../exif.jpg')));
     }
 
     public function testExifDate()
     {
         $this->setupExif();
 
-        $this->assertEquals('2017-06-21', $this->formatter->format(':date', __DIR__ . '/../exif.jpg'));
+        $this->assertEquals('2017-06-21', $this->formatter->format(':date', new File(__DIR__ . '/../exif.jpg')));
+        $this->assertEquals('2017-07-02', $this->formatter->format(':date', new File(__DIR__ . '/../exif2.jpg')));
     }
 
     public function testExifMonth()
     {
         $this->setupExif();
 
-        $this->assertEquals('06 - June', $this->formatter->format(':month', __DIR__ . '/../exif.jpg'));
+        $this->assertEquals('06 - June', $this->formatter->format(':month', new File(__DIR__ . '/../exif.jpg')));
     }
 
     public function testExifDevice()
     {
         $this->setupExif();
 
-        $this->assertEquals('Google Pixel', $this->formatter->format(':device', __DIR__ . '/../exif.jpg'));
+        $this->assertEquals('Google Pixel', $this->formatter->format(':device', new File(__DIR__ . '/../exif.jpg')));
     }
 
     public function testExifDeviceNoModel()
@@ -223,7 +194,7 @@ class FilenameFormatterTest extends TestCase
             return '';
         });
 
-        $this->assertEquals('Google', $this->formatter->format(':device', __DIR__ . '/../exif.jpg'));
+        $this->assertEquals('Google', $this->formatter->format(':device', new File(__DIR__ . '/../exif.jpg')));
     }
 
     public function testExifDeviceNoMake()
@@ -234,7 +205,7 @@ class FilenameFormatterTest extends TestCase
             return '';
         });
 
-        $this->assertEquals('Pixel', $this->formatter->format(':device', __DIR__ . '/../exif.jpg'));
+        $this->assertEquals('Pixel', $this->formatter->format(':device', new File(__DIR__ . '/../exif.jpg')));
     }
 
     public function testExifDeviceNoMakeModel()
@@ -249,7 +220,49 @@ class FilenameFormatterTest extends TestCase
             return '';
         });
 
-        $this->assertEquals('Unknown', $this->formatter->format(':device', __DIR__ . '/../exif.jpg'));
+        $this->assertEquals('Unknown', $this->formatter->format(':device', new File(__DIR__ . '/../exif.jpg')));
+    }
+
+    public function testId3Date()
+    {
+        $defaultTimezone = date_default_timezone_get();
+        date_default_timezone_set('Europe/Oslo');
+
+        $this->assertEquals('20:07:58', $this->formatter->format(':time', new File(__DIR__ . '/../id3.mp4')));
+
+        date_default_timezone_set($defaultTimezone);
+    }
+
+    public function testId3Artist()
+    {
+        $this->assertEquals('Einar', $this->formatter->format(':artist', new File(__DIR__ . '/../id3.mp4')));
+    }
+
+    public function testId3Album()
+    {
+        $this->assertEquals('Mediasort', $this->formatter->format(':album', new File(__DIR__ . '/../id3.mp4')));
+
+        $this->expectException(\RuntimeException::class);
+        $this->expectExceptionMessage('The format: [:album] failed with message: Did not find album in id3 tags.');
+
+        $this->formatter->format(':album', new File(__DIR__ . '/../id3_2.mp4'));
+    }
+
+    public function testId3Track()
+    {
+        $this->assertEquals('01 - track name æøå', $this->formatter->format(':track', new File(__DIR__ . '/../id3.mp4')));
+
+        $this->expectException(\RuntimeException::class);
+        $this->expectExceptionMessage('The format: [:track] failed with message: Did not find title in id3 tags.');
+
+        $this->formatter->format(':track', new File(__DIR__ . '/../id3_2.mp4'));
+    }
+
+    public function testId3NoArtist()
+    {
+        $this->expectException(\RuntimeException::class);
+        $this->expectExceptionMessage('The format: [:artist] failed with message: Did not find artist in id3 tags.');
+        $this->formatter->format(':artist', new File(__DIR__ . '/../id3_2.mp4'));
     }
 
     private function setupExif()

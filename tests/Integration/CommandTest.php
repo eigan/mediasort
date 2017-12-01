@@ -4,6 +4,7 @@ namespace Eigan\Mediasort\Tests\Integration;
 
 use Eigan\Mediasort\Application;
 use Eigan\Mediasort\Command;
+use Eigan\Mediasort\File;
 use org\bovigo\vfs\vfsStream;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Console\Output\OutputInterface;
@@ -72,11 +73,11 @@ class CommandTest extends TestCase
 
         $output = $this->execute([
             'source' => $directory->url() . '/source',
-            '--format' => ':day'
+            '--format' => ':name'
         ], ['verbosity' => OutputInterface::VERBOSITY_VERBOSE]);
 
         $this->assertContains('Destination: ' . $directory->url() . '/source', $output);
-        $this->assertFileExists($directory->url() . '/source/' . date('d') . '.jpg');
+        $this->assertFileExists($directory->url() . '/source/myfile.jpg');
     }
 
     public function testResolveRelative()
@@ -288,7 +289,7 @@ class CommandTest extends TestCase
             ]
         ]);
 
-        $this->execute([
+        $output = $this->execute([
             'source' => $directory->url() . '/source',
             'destination' => $directory->url() . '/destination',
 
@@ -491,7 +492,8 @@ class CommandTest extends TestCase
             'source' => $directory->url() . '/source',
             'destination' => $directory->url() . '/destination',
 
-            '--link' => true
+            '--link' => true,
+            '--format' => ':name'
         ], ['verbosity' => OutputInterface::VERBOSITY_VERBOSE, 'interactive' => true], ['Yes']);
 
         $this->assertContains('   myfile.jpg', $output);
@@ -504,9 +506,9 @@ class CommandTest extends TestCase
 
             '--link' => true,
             '--dry-run' => true,
-        ], ['verbosity' => OutputInterface::VERBOSITY_VERBOSE, 'interactive' => true], ['Yes', 'No']);
+        ], ['verbosity' => OutputInterface::VERBOSITY_VERBOSE, 'interactive' => false], ['Yes', 'No']);
 
-        $this->assertContains('   '.__DIR__.'/../exif.jpg', $output);
+        $this->assertContains('  '.__DIR__.'/../exif.jpg', $output);
     }
 
     public function testVerboseMode()
@@ -527,13 +529,14 @@ class CommandTest extends TestCase
             'source' => $directory->url() . '/source',
             'destination' => $directory->url() . '/destination',
 
-            '-r' => true
+            '-r' => true,
+            '--format' => ':name'
         ], ['verbosity' => OutputInterface::VERBOSITY_VERBOSE]);
 
         $this->assertContains('Source: ' . $directory->url() . '/source', $output);
         $this->assertContains('Destination: ' . $directory->url() . '/destination', $output);
 
-        $this->assertContains(' - ' . $directory->url() . '/source/myfile.jpg', $output);
+        $this->assertContains('- ' . $directory->url() . '/source/myfile.jpg', $output);
     }
 
     public function testInteractive()
@@ -577,7 +580,7 @@ class CommandTest extends TestCase
 
         $commandTester = new CommandTester($command);
 
-        $application->getFilenameFormatter()->setFormatter(':crash', function ($path) {
+        $application->getFilenameFormatter()->setFormatter(':crash', function (File $path) {
             throw new \RuntimeException('I am a crasher!');
         });
 
@@ -595,7 +598,7 @@ class CommandTest extends TestCase
             'source' => $directory->url() . '/source',
             'destination' => $directory->url() . '/destination',
             '--format' => ':crash'
-        ], ['interactive' => false]);
+        ], ['interactive' => false, 'verbosity' => OutputInterface::VERBOSITY_VERBOSE]);
 
         $this->assertFileExists($directory->url() . '/source/myfile.jpg');
         $this->assertFileExists($directory->url() . '/source/other');
@@ -734,9 +737,9 @@ class CommandTest extends TestCase
             ]
         ]);
 
-        $command->subscribe('iterate.start', function (string $sourceFilePath) use ($directory) {
-            if ($sourceFilePath === $directory->url() . '/source/myfile.jpg') {
-                unlink($sourceFilePath);
+        $command->subscribe('iterate.start', function (File $sourceFile) use ($directory) {
+            if ($sourceFile->getPath() === $directory->url() . '/source/myfile.jpg') {
+                unlink($sourceFile->getPath());
             }
         });
 

@@ -131,9 +131,10 @@ class Command extends SymfonyCommand
         try {
             list($source, $destination) = $this->resolvePaths($input);
 
-            $this->formatter->setFormatter(':original', function ($path) use ($source) {
-                $extension = pathinfo($path, PATHINFO_EXTENSION);
+            $this->formatter->setFormatter(':original', function (File $file) use ($source) {
+                $extension = $file->getExtension();
 
+                $path = $file->getPath();
                 if ($extension) {
                     $path = $this->replaceLastOccurrence('.'.$extension, '', $path);
                 }
@@ -158,47 +159,52 @@ class Command extends SymfonyCommand
             $this->formatter->setUseExif(false);
         }
 
-        foreach ($this->iterate($source, $recursive) as $fileSourcePath) {
-            if ($this->shouldSkip($fileSourcePath, $input)) {
+        foreach ($this->iterate($source, $recursive) as $sourceFile) {
+            if ($this->shouldSkip($sourceFile, $input)) {
                 continue;
             }
 
-            $this->publish('iterate.start', [$fileSourcePath]);
+            $this->publish('iterate.start', [$sourceFile]);
 
             try {
-                $fileDestinationPath = $this->formatDestinationPath($destination, $fileSourcePath, $format);
+                $fileDestinationPath = $this->formatDestinationPath($destination, $sourceFile, $format);
             } catch (RuntimeException $e) {
-                $output->writeln('<fg=white;bg=red>'.$e->getMessage().'</>');
+                $output->writeln("<fg=yellow>Skipped: Format failed {$sourceFile->getPath()}</>");
+
+                if ($output->isVerbose()) {
+                    $output->writeln(' <fg=red>'.$e->getMessage().'</>');
+                }
+
                 continue;
             }
 
             if (file_exists($fileDestinationPath)) {
-                if ($this->isDuplicate($fileSourcePath, $fileDestinationPath)) {
-                    $output->writeln("<fg=yellow> Skipped: Duplicate $fileSourcePath -> $fileDestinationPath</>");
+                if ($this->isDuplicate($sourceFile, $fileDestinationPath)) {
+                    $output->writeln("<fg=yellow>Skipped: Duplicate {$sourceFile->getPath()} -> $fileDestinationPath</>");
                     continue;
                 }
 
-                $incrementedPath = $this->incrementPath($fileSourcePath, $fileDestinationPath);
+                $incrementedPath = $this->incrementPath($sourceFile, $fileDestinationPath);
 
                 if ($incrementedPath === null) {
-                    $output->writeln("<fg=yellow> Skipped: Duplicate $fileSourcePath -> $fileDestinationPath</>");
+                    $output->writeln("<fg=yellow>Skipped: Duplicate {$sourceFile->getPath()} -> $fileDestinationPath</>");
                     continue;
                 }
 
                 $fileDestinationPath = $incrementedPath;
             }
 
-            if (is_readable($fileSourcePath) === false) {
+            if ($sourceFile->isReadable() === false) {
                 continue;
             }
 
             if ($shouldLink) {
-                $output->writeln("   $fileSourcePath");
+                $output->writeln("  {$sourceFile->getPath()}");
             } else {
-                $output->writeln(" <fg=red>- $fileSourcePath</> (move)");
+                $output->writeln("<fg=red>- {$sourceFile->getPath()}</> (move)");
             }
 
-            $output->writeln(" <fg=green>+ $fileDestinationPath</>");
+            $output->writeln("<fg=green>+ $fileDestinationPath</>");
 
             $success = false;
 
@@ -207,9 +213,9 @@ class Command extends SymfonyCommand
                     $destinationIsOk = $this->mkdir($fileDestinationPath);
 
                     if ($destinationIsOk) {
-                        $success = link($fileSourcePath, $fileDestinationPath);
+                        $success = link($sourceFile->getPath(), $fileDestinationPath);
                     } else {
-                        $output->writeln("<fg=yellow> Skipped: Not writable ($fileDestinationPath)");
+                        $output->writeln("<fg=yellow>Skipped: Not writable ($fileDestinationPath)");
                     }
                 }
             } else {
@@ -217,15 +223,15 @@ class Command extends SymfonyCommand
                     $destinationIsOk = $this->mkdir($fileDestinationPath);
 
                     if ($destinationIsOk) {
-                        $success = rename($fileSourcePath, $fileDestinationPath);
+                        $success = rename($sourceFile->getPath(), $fileDestinationPath);
                     } else {
-                        $output->writeln("<fg=yellow> Skipped: Not writable ($fileDestinationPath)");
+                        $output->writeln("<fg=yellow>Skipped: Not writable ($fileDestinationPath)");
                     }
                 }
             }
             
             if ($success) {
-                $this->logger->info(($shouldLink ? 'link' : 'move').' "'.$fileSourcePath.'" "'.$fileDestinationPath.'"');
+                $this->logger->info(($shouldLink ? 'link' : 'move').' "'.$sourceFile->getPath().'" "'.$fileDestinationPath.'"');
             }
         }
 
@@ -327,12 +333,12 @@ class Command extends SymfonyCommand
     /**
      * Determine if the given path can be skipped
      *
-     * @param $fileSourcePath
+     * @param File           $file
      * @param InputInterface $input
      *
      * @return bool
      */
-    private function shouldSkip($fileSourcePath, InputInterface $input): bool
+    private function shouldSkip(File $file, InputInterface $input): bool
     {
         $ignore = $input->getOption('ignore');
         $only = $input->getOption('only');
@@ -344,7 +350,7 @@ class Command extends SymfonyCommand
                 return trim($ext);
             }, $ignoreInput);
 
-            if (in_array(pathinfo($fileSourcePath, PATHINFO_EXTENSION), $extensions, true)) {
+            if (in_array($file->getExtension(), $extensions, true)) {
                 return true;
             }
         }
@@ -355,29 +361,27 @@ class Command extends SymfonyCommand
                 return trim($ext);
             }, $input);
 
-            if (!in_array(pathinfo($fileSourcePath, PATHINFO_EXTENSION), $extensions, true)) {
+            if (!in_array($file->getExtension(), $extensions, true)) {
                 return true;
             }
         }
 
-        if (is_readable($fileSourcePath) === false) {
+        if ($file->isReadable() === false) {
             return true;
         }
 
-        if (filesize($fileSourcePath) === 0) {
+        if ($file->getSize() === 0) {
             return true;
         }
 
         $types = explode(',', $type);
-        $extensions = $this->getTypesExtensions($types);
-        $extension = strtolower(pathinfo($fileSourcePath, PATHINFO_EXTENSION));
 
-        if (in_array($extension, $extensions, true)) {
+        if (in_array($file->getType(), $types, true)) {
             return false;
         }
 
         foreach ($types as $allowedType) {
-            if (strpos(mime_content_type($fileSourcePath), $allowedType) !== false) {
+            if (strpos($file->getMimeType(), $allowedType) !== false) {
                 return false;
             }
         }
@@ -405,88 +409,35 @@ class Command extends SymfonyCommand
     }
 
     /**
-     * Small utility to get the allowed extensions given the $types sent via --only-type
-     *
-     * @param array $types
-     *
-     * @return array
-     */
-    private function getTypesExtensions(array $types): array
-    {
-        $allowed = [];
-
-        foreach ($types as $type) {
-            switch ($type) {
-                case 'image':
-                    $allowed = array_merge(
-                        [
-                            'bmp', 'cgm', 'g3', 'gif', 'ief', 'jpeg', 'jpg', 'jpe', 'ktx', 'png', 'btif', 'sgi',
-                            'svg', 'svgz', 'tiff', 'tif', 'psd', 'uvi', 'uvvi', 'uvg', 'uvvg', 'sub', 'djvu',
-                            'djv', 'dwg', 'dxf', 'fbs', 'fpx', 'fst', 'mmr', 'rlc', 'mdi', 'wdp', 'npx', 'wbmp',
-                            'xif', 'webp', '3ds', 'ras', 'cmx', 'fh', 'fhc', 'fh4', 'fh5', 'fh7', 'ico', 'sid',
-                            'pcx', 'pic', 'pct', 'pnm', 'pbm', 'pgm', 'ppm', 'rgb', 'tga', 'xbm', 'xpm', 'xwd'
-                        ],
-                        $allowed
-                    );
-                    break;
-                case 'video':
-                    $allowed = array_merge(
-                        [
-                            '3gp', '3g2', 'h261', 'h263', 'h264', 'jpgv', 'jpm', 'jpgm', 'mj2', 'mjp2', 'mp4',
-                            'mp4v', 'mpg4', 'mpeg', 'mpg', 'mpe', 'm1v', 'm2v', 'ogv', 'qt', 'mov', 'uvh', 'uvvh',
-                            'uvm', 'uvvm', 'uvp', 'uvvp', 'uvs', 'uvvs', 'uvv', 'uvvv', 'dvb', 'fvt', 'mxu', 'm4u',
-                            'pyv', 'uvu', 'uvvu', 'viv', 'webm', 'f4v', 'fli', 'flv', 'm4v', 'mkv', 'mk3d', 'mks',
-                            'mng', 'mts', 'asf', 'asx', 'vob', 'wm', 'wmv', 'wmx', 'wvx', 'avi', 'movie', 'smv'
-                        ],
-                        $allowed
-                    );
-                    break;
-                case 'audio':
-                    $allowed = array_merge(
-                        [
-                            'adp', 'au', 'snd', 'mid', 'midi', 'kar', 'rmi', 'mp4a', 'mpga', 'mp2', 'mp2a', 'mp3',
-                             'm2a', 'm3a', 'oga', 'ogg', 'spx', 's3m', 'sil', 'uva', 'uvva', 'eol', 'dra', 'dts',
-                             'dtshd', 'lvp', 'pya', 'ecelp4800', 'ecelp7470', 'ecelp9600', 'rip', 'weba', 'aac',
-                             'aif', 'aiff', 'aifc', 'caf', 'flac', 'mka', 'm3u', 'wax', 'wma', 'ram', 'ra', 'rmp',
-                             'wav', 'xm'
-                        ],
-                        $allowed
-                    );
-                    break;
-            }
-        }
-
-        return $allowed;
-    }
-
-    /**
-     * Creates the destination path by using the format specified
-     *
      * @param string $destination
-     * @param string $fileSourcePath
+     * @param File   $sourceFile
      * @param string $format
      *
      * @return string
+     *
+     * @throws RuntimeException
+     * @throws InvalidArgumentException
      */
-    private function formatDestinationPath(string $destination, string $fileSourcePath, string $format): string
+    private function formatDestinationPath(string $destination, File $sourceFile, string $format): string
     {
-        $mewPath = $this->formatter->format($format . ':ext', $fileSourcePath);
+        $newPath = $this->formatter->format($format . ':ext', $sourceFile);
 
-        if ($mewPath[0] !== '/') {
-            return $destination . '/'  . $mewPath;
+        if ($newPath[0] !== '/') {
+            return $destination . '/'  . $newPath;
         }
 
-        return $destination . $mewPath;
+        return $destination . $newPath;
     }
 
     /**
      * Given a path, increment until we get a usable filename
      *
+     * @param File $sourceFile
      * @param $fileDestinationPath
      *
      * @return string|null
      */
-    private function incrementPath(string $fileSourcePath, string $fileDestinationPath)
+    private function incrementPath(File $sourceFile, string $fileDestinationPath)
     {
         $index = 0;
 
@@ -515,7 +466,7 @@ class Command extends SymfonyCommand
 
         do {
             $fileDestinationPath = $increment($fileDestinationPath, ++$index);
-        } while (file_exists($fileDestinationPath) && $isNotDuplicate = !$this->isDuplicate($fileSourcePath, $fileDestinationPath));
+        } while (file_exists($fileDestinationPath) && $isNotDuplicate = !$this->isDuplicate($sourceFile, $fileDestinationPath));
 
         if ($isNotDuplicate === false && file_exists($fileDestinationPath)) {
             return null;
@@ -527,19 +478,19 @@ class Command extends SymfonyCommand
     /**
      * Check if the given path is a duplicate
      *
-     * @param string $fileSourcePath
+     * @param File   $sourceFile
      * @param string $fileDestinationPath
      *
      * @return bool
      */
-    private function isDuplicate(string $fileSourcePath, string $fileDestinationPath): bool
+    private function isDuplicate(File $sourceFile, string $fileDestinationPath): bool
     {
-        if (filesize($fileSourcePath) === filesize($fileDestinationPath)) {
-            $sourceInode = fileinode($fileSourcePath);
+        if ($sourceFile->getSize() === filesize($fileDestinationPath)) {
+            $sourceInode = fileinode($sourceFile->getPath());
             $destinationInode = fileinode($fileDestinationPath);
 
             if ((!$sourceInode && !$destinationInode) || ($sourceInode !== $destinationInode)) {
-                return hash_file('md5', $fileSourcePath) === hash_file('md5', $fileDestinationPath);
+                return hash_file('md5', $sourceFile->getPath()) === hash_file('md5', $fileDestinationPath);
             }
 
             return $sourceInode === $destinationInode;
@@ -590,8 +541,9 @@ class Command extends SymfonyCommand
         // Key is the file modified timestamp
         ksort($paths);
 
-        foreach ($paths as $path) {
-            yield $path;
+        foreach ($paths as $mtime => $path) {
+            $file = new File($path);
+            yield $file;
         }
 
         if ($recursive) {

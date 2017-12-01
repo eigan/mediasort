@@ -2,6 +2,7 @@
 
 namespace Eigan\Mediasort;
 
+use ID3Parser\getID3\getid3_lib;
 use InvalidArgumentException;
 use RuntimeException;
 
@@ -31,9 +32,16 @@ class FilenameFormatter
      */
     private $useExif;
 
+    /**
+     * @var \getID3
+     */
+    private $id3Engine;
+
     public function __construct($useExif = true)
     {
         $this->useExif = $useExif;
+        $this->id3Engine = new \getID3();
+
         $this->setupFormatters();
     }
 
@@ -58,14 +66,14 @@ class FilenameFormatter
      * Formats the given path into the format. Note that path should exist
      *
      * @param string $format
-     * @param string $path
+     * @param File   $file
      *
      * @return string
      *
      * @throws RuntimeException         When a formatter fails
-     * @throws InvalidArgumentException When the formatter doesnt exist
+     * @throws InvalidArgumentException When the formatter doesn't exist
      */
-    public function format(string $format, string $path): string
+    public function format(string $format, File $file): string
     {
         $callbacks = [];
 
@@ -82,9 +90,9 @@ class FilenameFormatter
 
             $formatterFunction = $this->formatters[$formatterPattern];
 
-            $callbacks['/' . $formatterPattern . '/'] = function () use ($formatterFunction, $path, $formatterPattern) {
+            $callbacks['/' . $formatterPattern . '/'] = function () use ($formatterFunction, $file, $formatterPattern) {
                 try {
-                    $result = $formatterFunction($path);
+                    $result = $formatterFunction($file);
                 } catch (\Exception $e) {
                     throw new RuntimeException("The format: [$formatterPattern] failed with message: " . $e->getMessage());
                 }
@@ -109,51 +117,97 @@ class FilenameFormatter
     /**
      * Returns exif data (cached)
      *
-     * @param string $file
+     * @param File $file
      *
      * @return array
      */
-    private function exif(string $file): array
+    private function exif(File $file): array
     {
         if ($this->useExif === false) {
             return [];
         }
         
-        if (isset($this->cachedExif[$file])) {
-            return $this->cachedExif[$file];
+        if (isset($this->cachedExif[$file->getPath()])) {
+            return $this->cachedExif[$file->getPath()];
         }
 
         $data = [];
 
         if (function_exists('exif_read_data')) {
-            $data = @exif_read_data($file);
+            $data = @exif_read_data($file->getPath());
         }
 
         if (is_array($data) === false) {
             $data = [];
         }
 
-        $this->cachedExif[$file] = $data;
+        $this->cachedExif[$file->getPath()] = $data;
 
         return $data;
     }
 
-    private function parseDate(string $path): \DateTime
+    /**
+     * @param File $file
+     *
+     * @return \DateTime|null
+     */
+    private function parseExifDate(File $file)
     {
-        if (isset($this->cachedDate[$path])) {
-            return $this->cachedDate[$path];
-        }
-
-        $exif = $this->exif($path);
+        $exif = $this->exif($file);
 
         if (isset($exif['DateTimeOriginal']) && $time = strtotime($exif['DateTimeOriginal'])) {
-            return $this->cachedDate[$path] = new \DateTime('@'.$time);
+            return $this->cachedDate[$file->getPath()] = new \DateTime($exif['DateTimeOriginal']);
         }
 
-        if (isset($exif['DateTime']) && $time = strtotime($exif['DateTime'])) {
-            return $this->cachedDate[$path] = new \DateTime('@'.$time);
+        if (isset($exif['DateTime'])) {
+            return $this->cachedDate[$file->getPath()] = new \DateTime($exif['DateTime']);
         }
 
+        return null;
+    }
+
+    private function id3(File $file)
+    {
+        $data = $this->id3Engine->analyze($file->getPath());
+
+        getid3_lib::CopyTagsToComments($data);
+
+        return $data;
+    }
+
+    /**
+     * @param File $file
+     *
+     * @return \DateTime|null
+     */
+    private function parseId3Date(File $file)
+    {
+        $id3 = $this->id3($file);
+        $date = null;
+
+        if (isset($id3['quicktime']['moov']['subatoms']) && is_array($id3['quicktime']['moov']['subatoms'])) {
+            foreach ($id3['quicktime']['moov']['subatoms'] as $subatom) {
+                if (isset($subatom['creation_time_unix']) === false) {
+                    continue;
+                }
+
+                $date = new \DateTime('@'.$subatom['creation_time_unix']);
+                $date->setTimezone(new \DateTimeZone(date_default_timezone_get()));
+
+                break;
+            }
+        }
+
+        return $date;
+    }
+
+    /**
+     * @param File $file
+     *
+     * @return \DateTime|null
+     */
+    private function parseFilenameDate(File $file)
+    {
         $datePatterns = [
             "/(?P<year>\d{4})(?P<month>\d{2})(?P<day>\d{2})_(?P<hour>\d{2})(?P<minute>\d{2})(?P<second>\d{2})/",
             "/(?P<year>\d{4})-(?P<month>\d{2})-(?P<day>\d{2}) (?P<hour>\d{2}).(?P<minute>\d{2}).(?P<second>\d{2})/",
@@ -162,13 +216,11 @@ class FilenameFormatter
         ];
 
         foreach ($datePatterns as $datePattern) {
-            preg_match($datePattern, $path, $matches);
+            preg_match($datePattern, $file->getPath(), $matches);
 
             if ($matches && $matches['year'] <= date('Y')) {
                 try {
-                    $date = new \DateTime("{$matches['year']}-{$matches['month']}-{$matches['day']} {$matches['hour']}:{$matches['minute']}:{$matches['second']}");
-
-                    return $this->cachedDate[$path] = $date;
+                    return new \DateTime("{$matches['year']}-{$matches['month']}-{$matches['day']} {$matches['hour']}:{$matches['minute']}:{$matches['second']}");
                 } catch (\Exception $e) {
                     // Probably tried to parse a long number sequence, and failed with month = 13+ or something
                     continue;
@@ -176,7 +228,36 @@ class FilenameFormatter
             }
         }
 
-        return $this->cachedDate[$path] = new \DateTime('@'.filemtime($path));
+        return null;
+    }
+
+    private function parseDate(File $file): \DateTime
+    {
+        if (isset($this->cachedDate[$file->getPath()])) {
+            return $this->cachedDate[$file->getPath()];
+        }
+
+        $date = null;
+
+        if ($file->getType() === File::TYPE_IMAGE) {
+            $date = $this->parseExifDate($file);
+        }
+
+        if (in_array($file->getType(), [File::TYPE_AUDIO, File::TYPE_VIDEO], true)) {
+            $date = $this->parseId3Date($file);
+        }
+
+        if ($date === null) {
+            $date = $this->parseFilenameDate($file);
+        }
+
+        if ($date === null) {
+            // Failed to find date in exif and id3, we could fallback to modified time
+            // but this date is often not what you want.
+            throw new RuntimeException('Failed to find date.');
+        }
+
+        return $this->cachedDate[$file->getPath()] = $date;
     }
 
     /*
@@ -187,73 +268,81 @@ class FilenameFormatter
     protected function setupFormatters()
     {
         $this->formatters = [
-            ':date' => function ($path) {
-                return $this->format(':year-:monthnum-:day', $path);
+            ':date' => function (File $file) {
+                try {
+                    return $this->format(':year-:monthnum-:day', $file);
+                } catch (\RuntimeException $e) {
+                    throw new RuntimeException('Failed to find date.');
+                }
             },
-            ':time' => function ($path) {
-                return $this->format(':hour::minute::second', $path);
+            ':time' => function (File $file) {
+                try {
+                    return $this->format(':hour::minute::second', $file);
+                } catch (\RuntimeException $e) {
+                    throw new RuntimeException('Failed to find date.');
+                }
             },
 
-            ':hour' => function ($path) {
-                $date = $this->parseDate($path);
+            ':hour' => function (File $file) {
+                $date = $this->parseDate($file);
 
                 return $date->format('H');
             },
 
-            ':dirname' => function ($path) {
-                return basename(pathinfo($path, PATHINFO_DIRNAME));
+            ':dirname' => function (File $file) {
+                return $file->getDirectoryName();
             },
 
-            ':minute' => function ($path) {
-                $date = $this->parseDate($path);
+            ':minute' => function (File $file) {
+                $date = $this->parseDate($file);
 
                 return $date->format('i');
             },
 
-            ':second' => function ($path) {
-                $date = $this->parseDate($path);
+            ':second' => function (File $file) {
+                $date = $this->parseDate($file);
 
                 return $date->format('s');
             },
 
-            ':year' => function ($path) {
+            ':year' => function (File $file) {
                 // Check exif first
-                $date = $this->parseDate($path);
+                $date = $this->parseDate($file);
 
                 return $date->format('Y');
             },
 
-            ':month' => function ($path) {
-                return $this->format(':monthnum - :monthname', $path);
+            ':month' => function (File $file) {
+                return $this->format(':monthnum - :monthname', $file);
             },
 
-            ':monthname' => function ($path) {
-                $date = $this->parseDate($path);
+            ':monthname' => function (File $file) {
+                $date = $this->parseDate($file);
 
                 return $date->format('F');
             },
 
-            ':monthnum' => function ($path) {
-                $date = $this->parseDate($path);
+            ':monthnum' => function (File $file) {
+                $date = $this->parseDate($file);
 
                 return $date->format('m');
             },
 
-            ':day' => function ($path) {
-                $date = $this->parseDate($path);
+            ':day' => function (File $file) {
+                $date = $this->parseDate($file);
 
                 return $date->format('d');
             },
 
-            ':devicemake' => function ($path) {
-                $exif = $this->exif($path);
+            ':devicemake' => function (File $file) {
+                $exif = $this->exif($file);
 
                 return $exif['Make'] ?? '';
             },
 
-            ':device' => function ($path) {
-                $make = $this->format(':devicemake', $path);
-                $model = $this->format(':devicemodel', $path);
+            ':device' => function (File $file) {
+                $make = $this->format(':devicemake', $file);
+                $model = $this->format(':devicemodel', $file);
 
                 if (empty($make) && empty($model)) {
                     return 'Unknown';
@@ -270,14 +359,14 @@ class FilenameFormatter
                 return $make. ' ' .$model;
             },
 
-            ':devicemodel' => function ($path) {
-                $exif = $this->exif($path);
+            ':devicemodel' => function (File $file) {
+                $exif = $this->exif($file);
 
                 return $exif['Model'] ?? '';
             },
 
-            ':ext' => function ($path) {
-                $extension = pathinfo($path, PATHINFO_EXTENSION);
+            ':ext' => function (File $file) {
+                $extension = $file->getExtension();
 
                 if ($extension) {
                     return ".$extension";
@@ -286,8 +375,66 @@ class FilenameFormatter
                 return '';
             },
 
-            ':name' => function ($path) {
-                return pathinfo($path, PATHINFO_FILENAME);
+            ':name' => function (File $file) {
+                return $file->getName();
+            },
+
+            ':artist' => function (File $file) {
+                $id3 = $this->id3($file);
+
+                $artist = null;
+
+                if (isset($id3['comments']['artist']) && is_array($id3['comments']['artist'])) {
+                    $artist = reset($id3['comments']['artist']);
+                }
+
+                if ($artist === null) {
+                    throw new RuntimeException('Did not find artist in id3 tags.');
+                }
+
+                return $artist;
+            },
+
+            ':track' => function (File $file) {
+                $id3 = $this->id3($file);
+
+                $title = null;
+
+                if (isset($id3['comments']['title']) && is_array($id3['comments']['title'])) {
+                    $title = reset($id3['comments']['title']);
+                }
+
+                if (isset($id3['comments']['track_number']) && is_array($id3['comments']['track_number'])) {
+                    $trackNumber = reset($id3['comments']['track_number']);
+
+                    if (strpos($trackNumber, '/') !== false) {
+                        list($trackNumber, $totalTracks) = explode('/', $trackNumber);
+                    }
+
+                    $title = sprintf('%02d', $trackNumber) . ' - ' . $title;
+                }
+
+                if ($title === null) {
+                    throw new RuntimeException('Did not find title in id3 tags.');
+                }
+
+                return $title;
+            },
+
+            ':album' => function (File $file) {
+                $id3 = $this->id3($file);
+
+                $album = null;
+
+                if (isset($id3['comments']['album']) && is_array($id3['comments']['album'])) {
+                    $album = reset($id3['comments']['album']);
+                }
+
+                if ($album === null) {
+                    throw new RuntimeException('Did not find album in id3 tags.');
+                }
+
+                return $album;
             }
         ];
     }

@@ -19,7 +19,8 @@
   "require": {
     "symfony/console": "^3.3",
     "php": ">=7.0",
-    "monolog/monolog": "^1.23"
+    "monolog/monolog": "^1.23",
+    "james-heinrich/getid3": "^1.9"
   },
 
   "require-dev": {

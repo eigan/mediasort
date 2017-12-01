@@ -6,9 +6,7 @@
 A batch rename tool for media files (audio, video and images). Move, or create an hardlink, with
 a new name based on meta information extracted from the file. 
 
-- Keeps your media easy to navigate
-- Ensure no duplicates
-- Can be executed after each change in directories 
+![](mediasort.gif)
 
  * [Example](#example)
  * [Installation](#installation)

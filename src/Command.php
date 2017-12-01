@@ -7,7 +7,6 @@ use Monolog\Formatter\LineFormatter;
 use Monolog\Handler\StreamHandler;
 use Monolog\Logger;
 use RuntimeException;
-use Symfony\Component\Console\Application as SymfonyApplication;
 use Symfony\Component\Console\Command\Command as SymfonyCommand;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
@@ -48,7 +47,7 @@ class Command extends SymfonyCommand
     }
 
     /**
-     * @return Application|SymfonyApplication
+     * @return Application
      */
     public function getApplication()
     {
@@ -59,10 +58,10 @@ class Command extends SymfonyCommand
      * Subscribe to the events
      * Just used by the verbose subscriber
      *
-     * @param $key
+     * @param string   $key
      * @param callable $callback
      */
-    public function subscribe($key, callable $callback)
+    public function subscribe(string $key, callable $callback)
     {
         if (isset($this->subscribers[$key]) === false) {
             $this->subscribers[$key] = [];
@@ -274,10 +273,10 @@ class Command extends SymfonyCommand
      * Publish and event
      * Just used by the verbose subscriber
      *
-     * @param $key
-     * @param $parts
+     * @param string $key
+     * @param array  $parts
      */
-    private function publish($key, $parts)
+    private function publish(string $key, array $parts)
     {
         if (isset($this->subscribers[$key])) {
             foreach ($this->subscribers[$key] as $subscriber) {
@@ -432,8 +431,8 @@ class Command extends SymfonyCommand
     /**
      * Given a path, increment until we get a usable filename
      *
-     * @param File $sourceFile
-     * @param $fileDestinationPath
+     * @param File   $sourceFile
+     * @param string $fileDestinationPath
      *
      * @return string|null
      */

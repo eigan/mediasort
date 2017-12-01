@@ -2,7 +2,7 @@
 
 namespace Eigan\Mediasort;
 
-use ID3Parser\getID3\getid3_lib;
+use \getid3_lib;
 use InvalidArgumentException;
 use RuntimeException;
 
@@ -53,11 +53,11 @@ class FilenameFormatter
     /**
      * Sets a formatter, note that you can actually override another formatter here.
      *
-     * @param $name
+     * @param string $name
      *
      * @param callable $formatter
      */
-    public function setFormatter($name, callable $formatter)
+    public function setFormatter(string $name, callable $formatter)
     {
         $this->formatters[$name] = $formatter;
     }

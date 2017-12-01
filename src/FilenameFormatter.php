@@ -95,8 +95,13 @@ class FilenameFormatter
 
         $result = preg_replace_callback_array($callbacks, $format);
 
-        $this->cachedDate = [];
-        $this->cachedExif = [];
+        if (count($this->cachedDate) > 2) {
+            $this->cachedDate = [];
+        }
+
+        if (count($this->cachedExif) > 2) {
+            $this->cachedExif = [];
+        }
 
         return $result;
     }

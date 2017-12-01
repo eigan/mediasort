@@ -318,6 +318,14 @@ class Command extends SymfonyCommand
         $source = rtrim($source, '/');
         $destination = rtrim($destination, '/');
 
+        if (is_dir($source) === false) {
+            throw new InvalidArgumentException('Source is not a directory');
+        }
+
+        if (is_dir($destination) === false) {
+            throw new InvalidArgumentException('Destination is not a directory');
+        }
+
         if (is_readable($source) === false) {
             throw new InvalidArgumentException('Source is not readable');
         }

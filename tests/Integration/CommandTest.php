@@ -63,6 +63,26 @@ class CommandTest extends TestCase
         $this->assertContains('Path ['.$directory->url() . '/destination2] does not exist', $output);
     }
 
+    public function testUnexpectedSourcePath()
+    {
+        $output = $this->execute([
+            'source' => __DIR__ . '/../exif.jpg',
+            'destination' => __DIR__ . '/../exif.jpg',
+        ]);
+
+        $this->assertContains('Source is not a directory', $output);
+    }
+
+    public function testUnexpectedDestinationPath()
+    {
+        $output = $this->execute([
+            'source' => __DIR__ . '/..',
+            'destination' => __DIR__ . '/../exif.jpg',
+        ]);
+
+        $this->assertContains('Destination is not a directory', $output);
+    }
+
     public function testNoDestinationInput()
     {
         $directory = $this->createDirectory([

@@ -214,7 +214,7 @@ class Command extends SymfonyCommand
                     if ($destinationIsOk) {
                         $success = link($sourceFile->getPath(), $fileDestinationPath);
                     } else {
-                        $output->writeln("<fg=yellow>Skipped: Not writable ($fileDestinationPath)");
+                        $output->writeln("<fg=yellow>Skipped: Not writable ($fileDestinationPath)</>");
                     }
                 }
             } else {
@@ -224,13 +224,15 @@ class Command extends SymfonyCommand
                     if ($destinationIsOk) {
                         $success = rename($sourceFile->getPath(), $fileDestinationPath);
                     } else {
-                        $output->writeln("<fg=yellow>Skipped: Not writable ($fileDestinationPath)");
+                        $output->writeln("<fg=yellow>Skipped: Not writable ($fileDestinationPath)</>");
                     }
                 }
             }
             
             if ($success) {
                 $this->logger->info(($shouldLink ? 'link' : 'move').' "'.$sourceFile->getPath().'" "'.$fileDestinationPath.'"');
+            } else {
+                $output->writeln('<fg=yellow>Operation failed</>');
             }
         }
 

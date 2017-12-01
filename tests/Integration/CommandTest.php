@@ -7,6 +7,8 @@ use Eigan\Mediasort\Command;
 use Eigan\Mediasort\File;
 use org\bovigo\vfs\vfsStream;
 use PHPUnit\Framework\TestCase;
+use Symfony\Component\Console\Input\ArgvInput;
+use Symfony\Component\Console\Output\BufferedOutput;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Tester\CommandTester;
 
@@ -707,7 +709,6 @@ class CommandTest extends TestCase
             '-r' => true
         ], ['interactive' => false]);
 
-        
         $this->assertFileExists($directory->url() . '/source/nested/file.jpg');
         $this->assertFileNotExists($directory->url() . '/destination/nested/file.jpg');
     }
@@ -815,6 +816,33 @@ class CommandTest extends TestCase
         $this->assertContains('Destination is not writable', $output);
     }
 
+    public function testSourceNotWritable()
+    {
+        $directory = $this->createDirectory([
+            'source' => [
+                'myfile.jpg' => 'content',
+            ],
+            'destination' => [
+            ]
+        ]);
+
+        $directory->getChild('source')->chown(VfsStream::OWNER_ROOT);
+        $directory->getChild('source')->chmod(0444);
+
+        $directory->getChild('source')->getChild('myfile.jpg')->chown(VfsStream::OWNER_ROOT);
+        $directory->getChild('source')->getChild('myfile.jpg')->chmod(0444);
+
+        $output = $this->execute([
+            'source' => $directory->url() . '/source',
+            'destination' => $directory->url() . '/destination',
+            '--format' => ':name'
+        ]);
+
+        $this->assertFileExists($directory->url() . '/source/myfile.jpg');
+        $this->assertFileNotExists($directory->url() . '/destination/myfile.jpg');
+        $this->assertContains('Operation failed', $output, 'Source cannot be moved, this should be reported');
+    }
+
     public function testDestinationFileNotWritable()
     {
         $directory = $this->createDirectory([
@@ -903,6 +931,26 @@ class CommandTest extends TestCase
 
         $this->assertContains('Source is not readable', $output);
         $this->assertFileExists($directory->url() . '/source/myfile.jpg');
+    }
+
+    public function testNoArgument()
+    {
+        $root = $this->createDirectory([
+            'source' => [
+            ],
+            'destination' => [
+            ]
+        ]);
+
+        $application = new Application($root->url());
+
+        $application->setAutoExit(false);
+        $output = new BufferedOutput();
+        $exitCode = $application->run(new ArgvInput([]), $output);
+
+        $this->assertContains('Not enough arguments (missing: "source").', $output->fetch());
+
+        $this->assertEquals(1, $exitCode);
     }
 
     public function testSkipEmptyFile()

@@ -16,6 +16,7 @@ so we also tests for additional scenarios.
 - Source not readable
 - Nested source not readable
 - Source file not readable
+- Source is not writable (cannot be moved)
 
 ###### Destination
 - Destination not writable

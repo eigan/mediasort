@@ -27,6 +27,6 @@ cache:
 php:7.0:
   image: php:7.0
   script:
-    - php vendor/bin/phpstan analyse --no-progress -l 7 src
+    - php vendor/bin/phpstan analyse --no-progress -l 7 src -c phpstan.neon
     - echo "Running PHPUnit Tests"
     - su testuser -c "php vendor/bin/phpunit --colors="never" --coverage-text"

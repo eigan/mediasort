@@ -206,9 +206,12 @@ class Command extends SymfonyCommand
             $output->writeln("<fg=green>+ $fileDestinationPath</>");
 
             $success = false;
+            $confirmed = false;
 
             if ($shouldLink) {
-                if ($symfonyStyle->confirm('Create hardlink?') && !$dryRyn) {
+                $confirmed = $symfonyStyle->confirm('Create hardlink?');
+
+                if ($confirmed && !$dryRyn) {
                     $destinationIsOk = $this->mkdir($fileDestinationPath);
 
                     if ($destinationIsOk) {
@@ -218,7 +221,9 @@ class Command extends SymfonyCommand
                     }
                 }
             } else {
-                if ($symfonyStyle->confirm('Move file?') && !$dryRyn) {
+                $confirmed = $symfonyStyle->confirm('Move file?');
+
+                if ($confirmed && !$dryRyn) {
                     $destinationIsOk = $this->mkdir($fileDestinationPath);
 
                     if ($destinationIsOk) {
@@ -231,7 +236,7 @@ class Command extends SymfonyCommand
             
             if ($success) {
                 $this->logger->info(($shouldLink ? 'link' : 'move').' "'.$sourceFile->getPath().'" "'.$fileDestinationPath.'"');
-            } else {
+            } elseif ($confirmed) {
                 $output->writeln('<fg=yellow>Operation failed</>');
             }
         }

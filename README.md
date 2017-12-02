@@ -75,7 +75,7 @@ destination
 #### Requirements
 - PHP 7.0.24+
   - ext-exif. For precise meta information (dates), and more.
-  - exit-phar For composer (build from source), or to execute phar file
+  - ext-phar For composer (build from source), or to execute phar file
 
 
 #### Composer
@@ -142,6 +142,7 @@ php70 /path/to/mediasort.phar "$@"
 --link              Create hardlink instead of moving
 
 -v                  Show additional information
+-vv                 Show even more info (result for all formatters)
 
 -n                  Disable interaction (Will autoconfirm)
 
@@ -164,15 +165,16 @@ For a structure with 3494 files (41.6GB), it took 0.29 seconds.
 
 #### Date and time from files
 Date is retrieved from files in the following order:
-- exif meta information
+- exif meta information (image)
+- id3 meta information (video/audio)
 - Date in path matching pattern:
   - YYYYMMDD_HHMMSS
   - YYYY-MM-DD HH.mm.ss
   - YYYY-MM-DD HH:mm:ss
   - YYYYMMDDHHMMSS
   - YYYYMMDD-HHMMSS
-- Use file modification date
-  - The date might not always be correct!
+ 
+ If no dates are found, then the format fails and file is skipped.
 
 #### File name collision
 When a file is identical, it gets ignored, otherwise we append an index to the filename.
@@ -208,13 +210,12 @@ find . -type d -empty -delete
 
 ### Todo
 These are things I would like to do sometime, but I don't really need right now.
-- Split code into more files (Single Responsibility Pattern).
+- Split code into more files.
 - More formatters
   - `:type-s`
   - `:exif(ExifProp)`
   - `:path` full original path
 - `--filter=":size>10 & :name~/regex/ & :weekday=monday`
 - I18n
-- Add to aur
 - Test Mac (travis) / Windows (tea-ci)
 - symlink

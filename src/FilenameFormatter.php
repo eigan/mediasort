@@ -345,12 +345,27 @@ class FilenameFormatter
             ':devicemake' => function (File $file) {
                 $exif = $this->exif($file);
 
-                return $exif['Make'] ?? '';
+                $make = $exif['Make'] ?? '';
+
+                if (empty($make)) {
+                    throw new RuntimeException('Did not find maker');
+                }
+
+                return $make;
             },
 
             ':device' => function (File $file) {
-                $make = $this->format(':devicemake', $file);
-                $model = $this->format(':devicemodel', $file);
+                try {
+                    $make = $this->format(':devicemake', $file);
+                } catch (RuntimeException $e) {
+                    $make = '';
+                }
+
+                try {
+                    $model = $this->format(':devicemodel', $file);
+                } catch (RuntimeException $e) {
+                    $model = '';
+                }
 
                 if (empty($make) && empty($model)) {
                     return 'Unknown';
@@ -370,7 +385,13 @@ class FilenameFormatter
             ':devicemodel' => function (File $file) {
                 $exif = $this->exif($file);
 
-                return $exif['Model'] ?? '';
+                $model = $exif['Model'] ?? '';
+
+                if (empty($model)) {
+                    throw new RuntimeException('Did not find device model');
+                }
+
+                return $model;
             },
 
             ':ext' => function (File $file) {

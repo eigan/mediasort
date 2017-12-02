@@ -244,7 +244,7 @@ class Command extends SymfonyCommand
             
             if ($success) {
                 $this->logger->info(($shouldLink ? 'link' : 'move').' "'.$sourceFile->getPath().'" "'.$fileDestinationPath.'"');
-            } elseif ($confirmed) {
+            } elseif ($confirmed && !$dryRyn) {
                 $output->writeln('<fg=yellow>Operation failed</>');
             }
         }

@@ -533,7 +533,7 @@ class CommandTest extends TestCase
         $this->assertContains('  '.__DIR__.'/../exif.jpg', $output);
     }
 
-    public function testVerboseMode()
+    public function testVeryVerboseMode()
     {
         $directory = $this->createDirectory([
             'source' => [
@@ -553,7 +553,7 @@ class CommandTest extends TestCase
 
             '-r' => true,
             '--format' => ':name'
-        ], ['verbosity' => OutputInterface::VERBOSITY_VERBOSE]);
+        ], ['verbosity' => OutputInterface::VERBOSITY_VERY_VERBOSE]);
 
         $this->assertContains('Source: ' . $directory->url() . '/source', $output);
         $this->assertContains('Destination: ' . $directory->url() . '/destination', $output);

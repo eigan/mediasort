@@ -63,6 +63,14 @@ class FilenameFormatter
     }
 
     /**
+     * @return string[]
+     */
+    public function getFormats(): array
+    {
+        return array_keys($this->formatters);
+    }
+
+    /**
      * Formats the given path into the format. Note that path should exist
      *
      * @param string $format

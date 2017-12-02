@@ -8,6 +8,7 @@ use Monolog\Handler\StreamHandler;
 use Monolog\Logger;
 use RuntimeException;
 use Symfony\Component\Console\Command\Command as SymfonyCommand;
+use Symfony\Component\Console\Helper\Table;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
@@ -165,6 +166,13 @@ class Command extends SymfonyCommand
 
             $this->publish('iterate.start', [$sourceFile]);
 
+            if ($output->isVeryVerbose()) {
+                $output->writeln('-----');
+                $output->writeln($sourceFile->getPath());
+
+                $this->outputFormatResults($output, $sourceFile);
+            }
+
             try {
                 $fileDestinationPath = $this->formatDestinationPath($destination, $sourceFile, $format);
             } catch (RuntimeException $e) {
@@ -242,6 +250,25 @@ class Command extends SymfonyCommand
         }
 
         return 0;
+    }
+
+    private function outputFormatResults(OutputInterface $output, File $sourceFile)
+    {
+        $table = new Table($output);
+
+        $table->setHeaders(['Format', 'Result']);
+
+        foreach ($this->formatter->getFormats() as $format) {
+            try {
+                $result = $this->formatter->format($format, $sourceFile);
+            } catch (\Exception $e) {
+                continue;
+            }
+
+            $table->addRow([$format, $result]);
+        }
+
+        $table->render();
     }
 
     private function setupLogger(string $logPath)

@@ -17,11 +17,33 @@ $phar->stopBuffering();
 function files(): \Iterator {
     $iterator = new RecursiveDirectoryIterator(__DIR__ . "/../");
 
+    $ignored = ['composer.lock', 'mediasort.gif'];
+
     foreach(new RecursiveIteratorIterator($iterator) as $file) {
         if($file->isDir() === true) {
             continue;
         }
 
+        if (strpos($file->getPath(), '/tests') !== false) {
+            continue;
+        }
+
+        if (strpos($file->getPath(), '/Tests') !== false) {
+            continue;
+        }
+
+        if (strpos($file->getPath(), '/.git') !== false) {
+            continue;
+        }
+
+        if (strpos($file->getPath(), '/demos') !== false) {
+            continue;
+        }
+
+        if (in_array($file->getFilename(), $ignored)) {
+            continue;
+        }
+        
         yield $file;
     }
 }

@@ -11,10 +11,7 @@ a new name based on meta information extracted from the file.
  * [Example](#example)
  * [Installation](#installation)
     * [Requirements](#requirements)
-    * [Composer](#composer)
-    * [Build from source](#build-from-source)
     * [Arch Linux](#arch-linux)
-    * [Synology](#synology)
  * [Usage](#usage)
     * [Options](#options)
  * [About](#about)
@@ -72,39 +69,19 @@ destination
 
 ### Installation
 
+See the [wiki page](https://github.com/eigan/mediasort/wiki/Installation).
+
 #### Requirements
 - PHP 7.0.24+
   - ext-exif. For precise meta information (dates), and more.
   - ext-phar For composer (build from source), or to execute phar file
 
-
-#### Composer
-```
-composer global require eigan/mediasort
-```
-
-#### Build from source
-```sh
-git clone https://gitlab.com/eigan/mediasort.git
-cd mediasort
-composer install --no-dev
-
-php -d="phar.readonly=0" bin/build.php
-chmod 755 mediasort.phar
-mv mediasort.phar /usr/local/bin/mediasort
-```
-
 #### Arch Linux
 Mediasort is available through AUR: [mediasort](https://aur.archlinux.org/packages/mediasort/).
 
-#### Synology
-- Install PHP7 and WebStation, enable phar support for PHP7.
-- Login via SSH
-- Download the latest mediasort.phar from releases by using `wget`
-- Now you should be able to `php70 mediasort.phar`
-- You can also create a bin file in /usr/local/bin/
+#### Composer (global)
 ```
-php70 /path/to/mediasort.phar "$@"
+composer global require eigan/mediasort
 ```
 
 ### Usage

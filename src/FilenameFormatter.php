@@ -11,14 +11,14 @@ class FilenameFormatter
     /**
      * @var Callable[]
      */
-    private $formatters;
+    private $formatters = [];
 
     /**
      * Cache path -> exif result
      *
      * @var array
      */
-    private $cachedExif;
+    private $cachedExif = [];
 
     /**
      * Cache path -> DateTime

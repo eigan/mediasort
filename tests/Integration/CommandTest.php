@@ -11,6 +11,7 @@ use Symfony\Component\Console\Input\ArgvInput;
 use Symfony\Component\Console\Output\BufferedOutput;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Tester\CommandTester;
+use function file_get_contents;
 
 class CommandTest extends TestCase
 {
@@ -294,6 +295,30 @@ class CommandTest extends TestCase
 
         $this->assertEquals('content', file_get_contents($destinationPath));
         $this->assertContains('Skipped: Duplicate', $output);
+    }
+
+    public function testSkipDuplicate2()
+    {
+        $directory = $this->createDirectory([
+            'source' => [
+                'myfile.jpg' => 'content2',
+                'otherfile.jpg' => 'content3'
+            ],
+            'destination' => [
+                'duplicate.jpg' => 'content2',
+                'duplicate (1).jpg' => 'content3',
+            ]
+        ]);
+
+        $output = $this->execute([
+            'source' => $directory->url() . '/source',
+            'destination' => $directory->url() . '/destination',
+
+            '--format' => 'duplicate',
+            '--link' => true
+        ], ['interactive' => false, 'verbosity' => OutputInterface::VERBOSITY_VERBOSE]);
+
+        $this->assertContains('Skipped: Duplicate vfs://test/source/otherfile.jpg -> vfs://test/destination/duplicate (1).jpg', $output);
     }
 
     public function testOnly()

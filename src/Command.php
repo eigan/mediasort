@@ -2,6 +2,7 @@
 
 namespace Eigan\Mediasort;
 
+use Eigan\Mediasort\Exception\IncrementedPathIsDuplicate;
 use InvalidArgumentException;
 use Monolog\Formatter\LineFormatter;
 use Monolog\Handler\StreamHandler;
@@ -191,10 +192,10 @@ class Command extends SymfonyCommand
                     continue;
                 }
 
-                $incrementedPath = $this->incrementPath($sourceFile, $fileDestinationPath);
-
-                if ($incrementedPath === null) {
-                    $output->writeln("<fg=yellow>Skipped: Duplicate {$sourceFile->getPath()} -> $fileDestinationPath</>");
+                try {
+                    $incrementedPath = $this->incrementPath($sourceFile, $fileDestinationPath);
+                } catch (IncrementedPathIsDuplicate $e) {
+                    $output->writeln("<fg=yellow>Skipped: Duplicate {$sourceFile->getPath()} -> {$e->getIncrementedPath()}</>");
                     continue;
                 }
 
@@ -477,6 +478,8 @@ class Command extends SymfonyCommand
      * @param string $fileDestinationPath
      *
      * @return string|null
+     *
+     * @throws IncrementedPathIsDuplicate
      */
     private function incrementPath(File $sourceFile, string $fileDestinationPath)
     {
@@ -510,7 +513,7 @@ class Command extends SymfonyCommand
         } while (file_exists($fileDestinationPath) && $isNotDuplicate = !$this->isDuplicate($sourceFile, $fileDestinationPath));
 
         if ($isNotDuplicate === false && file_exists($fileDestinationPath)) {
-            return null;
+            throw new IncrementedPathIsDuplicate($sourceFile, $fileDestinationPath);
         }
 
         return $fileDestinationPath;

@@ -79,6 +79,7 @@ class FilenameFormatterTest extends TestCase
                 '123420169123456789 (1).mp4' => 'content5',
                 'VID_20170518-222741 (1).mp4' => 'content6',
                 '2017-07-09 12:13:46.mp4' => 'content7',
+                'ThermalCamera2018-04-11_07-00-19+0200.png' => 'content8',
             ]
         ]);
 
@@ -88,6 +89,7 @@ class FilenameFormatterTest extends TestCase
         $this->datedPath3 = $this->directory->url() . '/source/VID_20170709121346.mp4';
         $this->datedPath4 = $this->directory->url() . '/source/VID_20170518-222741 (1).mp4';
         $this->datedPath5 = $this->directory->url() . '/source/2017-07-09 12:13:46.mp4';
+        $this->datedPath6 = $this->directory->url() . '/source/ThermalCamera2018-04-11_07-00-19+0200.png';
         $this->numberedPath = $this->directory->url() . '/source/123420169123456789 (1).mp4';
 
         $this->formatter = new FilenameFormatter();
@@ -149,6 +151,7 @@ class FilenameFormatterTest extends TestCase
         $this->assertEquals('2017-07-09', $this->formatter->format(':date', new File($this->datedPath3)));
         $this->assertEquals('2017-05-18', $this->formatter->format(':date', new File($this->datedPath4)));
         $this->assertEquals('2017-07-09', $this->formatter->format(':date', new File($this->datedPath5)));
+        $this->assertEquals('2018-04-11 07:00:19', $this->formatter->format(':date :time', new File($this->datedPath6)));
 
         $this->expectException(\RuntimeException::class);
         $this->expectExceptionMessage('The format: [:date] failed with message: Failed to find date.');

@@ -137,9 +137,6 @@ Note: shortcuts cannot be combined, `-nv` will not work. This is a limitation of
 
 ### About
 
-#### Speed
-For a structure with 3494 files (41.6GB), it took 0.29 seconds.
-
 #### Date and time from files
 Date is retrieved from files in the following order:
 - exif meta information (image)

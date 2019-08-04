@@ -11,7 +11,7 @@ use Symfony\Component\Console\Input\InputOption;
 
 class Application extends SymfonyApplication
 {
-    const VERSION = '0.12.2';
+    const VERSION = '0.13';
 
     /**
      * @var string

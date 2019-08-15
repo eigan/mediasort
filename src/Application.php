@@ -33,7 +33,10 @@ class Application extends SymfonyApplication
         parent::__construct('Mediasort', self::VERSION);
 
         $this->rootPath = $rootPath;
-        $this->formatter = new FilenameFormatter();
+
+        $haveMediainfo = $this->haveMediaInfoBin();
+
+        $this->formatter = new FilenameFormatter(true, $haveMediainfo);
         $this->logger = new Logger('mediasort', [new NullHandler()]);
 
         $this->setDefaultCommand('move', true);
@@ -71,5 +74,15 @@ class Application extends SymfonyApplication
             new HelpCommand(),
             new Command($this->formatter, $this->logger, $this->rootPath)
         ];
+    }
+
+    private function haveMediainfoBin(): bool
+    {
+        $returnCode = 0;
+        $output = "";
+
+        exec("which mediainfo", $output, $returnCode);
+
+        return $returnCode === 0;
     }
 }

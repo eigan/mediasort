@@ -146,10 +146,10 @@ class FilenameFormatterTest extends TestCase
 
     public function testDateFromPath()
     {
+        $this->assertEquals('2017-05-18', $this->formatter->format(':date', new File($this->datedPath4)));
         $this->assertEquals('2017-07-09', $this->formatter->format(':date', new File($this->datedPath)));
         $this->assertEquals('2017-07-09', $this->formatter->format(':date', new File($this->datedPath2)));
         $this->assertEquals('2017-07-09', $this->formatter->format(':date', new File($this->datedPath3)));
-        $this->assertEquals('2017-05-18', $this->formatter->format(':date', new File($this->datedPath4)));
         $this->assertEquals('2017-07-09', $this->formatter->format(':date', new File($this->datedPath5)));
         $this->assertEquals('2018-04-11 07:00:19', $this->formatter->format(':date :time', new File($this->datedPath6)));
 

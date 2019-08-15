@@ -2,9 +2,14 @@
 
 namespace Eigan\Mediasort;
 
+use function date_default_timezone_get;
 use \getid3_lib;
 use InvalidArgumentException;
+use function is_array;
+use function json_decode;
 use RuntimeException;
+use function shell_exec;
+use function strtolower;
 
 class FilenameFormatter
 {
@@ -33,13 +38,20 @@ class FilenameFormatter
     private $useExif;
 
     /**
+     * Fallback to mediainfo command if others fail?
+     * @var bool
+     */
+    private $useMediainfo;
+
+    /**
      * @var \getID3
      */
     private $id3Engine;
 
-    public function __construct($useExif = true)
+    public function __construct(bool $useExif = true, bool $useMediainfo = false)
     {
         $this->useExif = $useExif;
+        $this->useMediainfo = $useMediainfo;
         $this->id3Engine = new \getID3();
 
         $this->setupFormatters();
@@ -134,7 +146,7 @@ class FilenameFormatter
         if ($this->useExif === false) {
             return [];
         }
-        
+
         if (isset($this->cachedExif[$file->getPath()])) {
             return $this->cachedExif[$file->getPath()];
         }
@@ -203,6 +215,23 @@ class FilenameFormatter
                 $date->setTimezone(new \DateTimeZone(date_default_timezone_get()));
 
                 break;
+            }
+        }
+
+
+        if ($date === null && $this->useMediainfo && strtolower($file->getExtension()) === 'mts') {
+            // Try mediainfo..
+            $mediainfo = shell_exec("mediainfo '" . $file->getPath() . "' --Output=JSON 2> /dev/null");
+            $mediainfo = json_decode($mediainfo, true);
+
+            if(isset($mediainfo['media']['track']) && is_array($mediainfo['media']['track'])) {
+                foreach($mediainfo['media']['track'] as $track) {
+                    if(isset($track['Recorded_Date'])) {
+                        $date = new \DateTime($track['Recorded_Date']);
+                        $date->setTimezone(new \DateTimeZone(date_default_timezone_get()));
+                        break;
+                    }
+                }
             }
         }
 

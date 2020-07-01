@@ -81,7 +81,7 @@ class Application extends SymfonyApplication
         $returnCode = 0;
         $output = "";
 
-        exec("which mediainfo", $output, $returnCode);
+        exec("which mediainfo 2>/dev/null", $output, $returnCode);
 
         return $returnCode === 0;
     }

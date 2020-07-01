@@ -41,11 +41,13 @@ class VerboseSubscriber
                 $recursive = $input->getOption('recursive') ? 'true' : 'false';
                 $ignore = $input->getOption('ignore');
                 $dryRyn = $input->getOption('dry-run') ? 'true' : 'false';
+                $timezone = date_default_timezone_get();
 
                 if (is_string($format)) {
                     $this->output->writeln("Format:\t\t\"$format\"");
                 }
 
+                $this->output->writeln("Timezone:\t$timezone");
                 $this->output->writeln("Use hardlink:\t$shouldLink");
                 $this->output->writeln("Recursive:\t$recursive");
 

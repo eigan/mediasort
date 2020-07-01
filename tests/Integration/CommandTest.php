@@ -21,7 +21,7 @@ class CommandTest extends TestCase
      */
     private $commandTester;
 
-    public function setUp()
+    public function setUp(): void
     {
         $application = new Application();
         $command = $application->find('sort');
@@ -45,7 +45,7 @@ class CommandTest extends TestCase
             'destination' => $directory->url() . '/destination',
         ]);
 
-        $this->assertContains('Path ['.$directory->url() . '/source2] does not exist', $output);
+        $this->assertStringContainsString('Path ['.$directory->url() . '/source2] does not exist', $output);
     }
 
     public function testDestinationNotExists()
@@ -64,7 +64,7 @@ class CommandTest extends TestCase
             'destination' => $directory->url() . '/destination2',
         ]);
 
-        $this->assertContains('Path ['.$directory->url() . '/destination2] does not exist', $output);
+        $this->assertStringContainsString('Path ['.$directory->url() . '/destination2] does not exist', $output);
     }
 
     public function testUnexpectedSourcePath()
@@ -74,7 +74,7 @@ class CommandTest extends TestCase
             'destination' => __DIR__ . '/../exif.jpg',
         ]);
 
-        $this->assertContains('Source is not a directory', $output);
+        $this->assertStringContainsString('Source is not a directory', $output);
     }
 
     public function testUnexpectedDestinationPath()
@@ -84,7 +84,7 @@ class CommandTest extends TestCase
             'destination' => __DIR__ . '/../exif.jpg',
         ]);
 
-        $this->assertContains('Destination is not a directory', $output);
+        $this->assertStringContainsString('Destination is not a directory', $output);
     }
 
     public function testNoDestinationInput()
@@ -100,7 +100,7 @@ class CommandTest extends TestCase
             '--format' => ':name'
         ], ['verbosity' => OutputInterface::VERBOSITY_VERBOSE]);
 
-        $this->assertContains("Destination:\t" . $directory->url() . '/source', $output);
+        $this->assertStringContainsString("Destination:\t" . $directory->url() . '/source', $output);
         $this->assertFileExists($directory->url() . '/source/myfile.jpg');
     }
 
@@ -158,8 +158,8 @@ class CommandTest extends TestCase
             '--format' => ':name'
         ]);
 
-        $this->assertContains('test/source/myfile.jpg', $output);
-        $this->assertContains('test/destination/myfile.jpg', $output);
+        $this->assertStringContainsString('test/source/myfile.jpg', $output);
+        $this->assertStringContainsString('test/destination/myfile.jpg', $output);
     }
 
     public function testResolveRelativeWithDots()
@@ -236,7 +236,7 @@ class CommandTest extends TestCase
             'destination' => 'vfs://~/destination'
         ], ['verbosity' => OutputInterface::VERBOSITY_VERBOSE]);
 
-        $this->assertContains($homeInfo['dir'], $output);
+        $this->assertStringContainsString($homeInfo['dir'], $output);
     }
 
     public function testMoveSingleFile()
@@ -295,7 +295,7 @@ class CommandTest extends TestCase
         $this->assertFileExists($destinationPath);
 
         $this->assertEquals('content', file_get_contents($destinationPath));
-        $this->assertContains('Skipped: Duplicate', $output);
+        $this->assertStringContainsString('Skipped: Duplicate', $output);
     }
 
     public function testSkipDuplicate2()
@@ -319,7 +319,7 @@ class CommandTest extends TestCase
             '--link' => true
         ], ['interactive' => false, 'verbosity' => OutputInterface::VERBOSITY_VERBOSE]);
 
-        $this->assertContains('Skipped: Duplicate vfs://test/source/otherfile.jpg -> vfs://test/destination/duplicate (1).jpg', $output);
+        $this->assertStringContainsString('Skipped: Duplicate vfs://test/source/otherfile.jpg -> vfs://test/destination/duplicate (1).jpg', $output);
     }
 
     public function testOnly()
@@ -544,7 +544,7 @@ class CommandTest extends TestCase
             '--format' => ':name'
         ], ['verbosity' => OutputInterface::VERBOSITY_VERBOSE, 'interactive' => true], ['Yes']);
 
-        $this->assertContains('   myfile.jpg', $output);
+        $this->assertStringContainsString('   myfile.jpg', $output);
     }
 
     public function testLinkMessage()
@@ -556,7 +556,7 @@ class CommandTest extends TestCase
             '--dry-run' => true,
         ], ['verbosity' => OutputInterface::VERBOSITY_VERBOSE, 'interactive' => false], ['Yes', 'No']);
 
-        $this->assertContains('  '.__DIR__.'/../exif.jpg', $output);
+        $this->assertStringContainsString('  '.__DIR__.'/../exif.jpg', $output);
     }
 
     public function testVeryVerboseMode()
@@ -581,10 +581,10 @@ class CommandTest extends TestCase
             '--format' => ':name'
         ], ['verbosity' => OutputInterface::VERBOSITY_VERY_VERBOSE]);
 
-        $this->assertContains("Source:\t\t" . $directory->url() . '/source', $output);
-        $this->assertContains("Destination:\t" . $directory->url() . '/destination', $output);
+        $this->assertStringContainsString("Source:\t\t" . $directory->url() . '/source', $output);
+        $this->assertStringContainsString("Destination:\t" . $directory->url() . '/destination', $output);
 
-        $this->assertContains('- ' . $directory->url() . '/source/myfile.jpg', $output);
+        $this->assertStringContainsString('- ' . $directory->url() . '/source/myfile.jpg', $output);
     }
 
     public function testInteractive()
@@ -609,7 +609,7 @@ class CommandTest extends TestCase
             '--format' => ':original'
         ], ['interactive' => true], ['Yes', 'N']);
 
-        $this->assertContains('Move file? (yes/no) [yes]', $output);
+        $this->assertStringContainsString('Move file? (yes/no) [yes]', $output);
 
         // Answer: yes, move
         $this->assertFileExists($directory->url() . '/destination/myfile.jpg');
@@ -617,7 +617,7 @@ class CommandTest extends TestCase
         // Answer: N, Left unchanged
         $this->assertFileNotExists($directory->url() . '/destination/skip/tobeskipped.jpg');
         $this->assertDirectoryNotExists($directory->url() . '/destination/skip');
-        $this->assertContains('content2', file_get_contents($directory->url() . '/source/skip/tobeskipped.jpg'));
+        $this->assertStringContainsString('content2', file_get_contents($directory->url() . '/source/skip/tobeskipped.jpg'));
     }
 
     public function testFailingFilenameFormatPattern()
@@ -653,7 +653,7 @@ class CommandTest extends TestCase
         $this->assertFileNotExists($directory->url() . '/destination/other');
 
         $output = $commandTester->getDisplay();
-        $this->assertContains('The format: [:crash] failed with message: I am a crasher!', $output);
+        $this->assertStringContainsString('The format: [:crash] failed with message: I am a crasher!', $output);
     }
 
     public function testByType()
@@ -710,7 +710,7 @@ class CommandTest extends TestCase
              '--format' => ':original'
         ], ['interactive' => false]);
 
-        $this->assertContains('Missing value for --only-type', $this->commandTester->getDisplay());
+        $this->assertStringContainsString('Missing value for --only-type', $this->commandTester->getDisplay());
     }
 
     public function testPermissions()
@@ -818,7 +818,7 @@ class CommandTest extends TestCase
         ]);
 
         $this->assertFileExists($directory->url() . '/source/myfile.jpg');
-        $this->assertContains('Destination is not writable', $output);
+        $this->assertStringContainsString('Destination is not writable', $output);
     }
 
     public function testDestinationNotWritable()
@@ -839,7 +839,7 @@ class CommandTest extends TestCase
         ]);
 
         $this->assertFileExists($directory->url() . '/source/myfile.jpg');
-        $this->assertContains('Destination is not writable', $output);
+        $this->assertStringContainsString('Destination is not writable', $output);
     }
 
     public function testSourceNotWritable()
@@ -866,7 +866,7 @@ class CommandTest extends TestCase
 
         $this->assertFileExists($directory->url() . '/source/myfile.jpg');
         $this->assertFileNotExists($directory->url() . '/destination/myfile.jpg');
-        $this->assertContains('Operation failed', $output, 'Source cannot be moved, this should be reported');
+        $this->assertStringContainsString('Operation failed', $output, 'Source cannot be moved, this should be reported');
     }
 
     public function testDestinationFileNotWritable()
@@ -900,7 +900,7 @@ class CommandTest extends TestCase
         $this->assertFileExists($directory->url() . '/source/nested/myfile.jpg');
         $this->assertFileNotExists($directory->url() . '/destination/nested/myfile.jpg');
         $this->assertFileExists($directory->url() . '/destination/sub/other.jpg');
-        $this->assertContains('Skipped: Not writable', $output);
+        $this->assertStringContainsString('Skipped: Not writable', $output);
     }
 
     public function testDestinationSubDirectoryNotWritable()
@@ -933,7 +933,7 @@ class CommandTest extends TestCase
             '--format' => ':original'
         ], ['verbosity' => OutputInterface::VERBOSITY_VERBOSE]);
 
-        $this->assertContains('Skipped: Not writable ('.$directory->url().'/destination/nested/nested/myfile.jpg)', $output);
+        $this->assertStringContainsString('Skipped: Not writable ('.$directory->url().'/destination/nested/nested/myfile.jpg)', $output);
         $this->assertFileExists($directory->url() . '/source/nested/nested/myfile.jpg');
         $this->assertFileExists($directory->url() . '/destination/sub/other.jpg');
     }
@@ -955,7 +955,7 @@ class CommandTest extends TestCase
             'destination' => $directory->url() . '/destination',
         ]);
 
-        $this->assertContains('Source is not readable', $output);
+        $this->assertStringContainsString('Source is not readable', $output);
         $this->assertFileExists($directory->url() . '/source/myfile.jpg');
     }
 
@@ -974,7 +974,7 @@ class CommandTest extends TestCase
         $output = new BufferedOutput();
         $exitCode = $application->run(new ArgvInput([]), $output);
 
-        $this->assertContains('Not enough arguments (missing: "source").', $output->fetch());
+        $this->assertStringContainsString('Not enough arguments (missing: "source").', $output->fetch());
 
         $this->assertEquals(1, $exitCode);
     }
@@ -1089,14 +1089,14 @@ class CommandTest extends TestCase
             'destination' => $directory->url() . '/destination',
         ]);
 
-        $this->assertContains('Mediasort doesn\'t support operations across wrapper types', $output);
+        $this->assertStringContainsString('Mediasort doesn\'t support operations across wrapper types', $output);
 
         $output = $this->execute([
             'destination' => __DIR__ . '/../',
             'source' => $directory->url() . '/destination',
         ]);
 
-        $this->assertContains('Mediasort doesn\'t support operations across wrapper types', $output);
+        $this->assertStringContainsString('Mediasort doesn\'t support operations across wrapper types', $output);
     }
 
     public function testSameInode()
@@ -1115,7 +1115,7 @@ class CommandTest extends TestCase
 
         $this->assertFileExists($testDestination . '/2017-06-21 17:49:56.jpg');
         $this->assertFileNotExists($testDestination . '/2017-06-21 17:49:56 (1).jpg');
-        $this->assertContains('Skipped: Duplicate', $output);
+        $this->assertStringContainsString('Skipped: Duplicate', $output);
 
         unlink(__DIR__ . '/../exif_linked.jpg');
         array_map('unlink', glob($testDestination . '/*.*'));
@@ -1153,7 +1153,7 @@ class CommandTest extends TestCase
 
         $this->assertDirectoryNotExists($directory->url() . '/destination/@eaDir');
         $this->assertDirectoryNotExists($directory->url() . '/destination/nested/@eaDir.jpg');
-        $this->assertNotContains('@eaDir', $output);
+        $this->assertStringNotContainsString('@eaDir', $output);
     }
 
     public function testNoExif()
@@ -1175,7 +1175,7 @@ class CommandTest extends TestCase
             '--no-exif' => true
         ]);
 
-        $this->assertContains('Exif not enabled. Dates might be incorrect!', $output);
+        $this->assertStringContainsString('Exif not enabled. Dates might be incorrect!', $output);
     }
 
     public function testLogPath()
@@ -1246,7 +1246,7 @@ class CommandTest extends TestCase
             '--log-path' => $directory->url() . 'invalid'
         ]);
 
-        $this->assertContains('Log path does not exist: ['.$directory->url().'invalid]', $output);
+        $this->assertStringContainsString('Log path does not exist: ['.$directory->url().'invalid]', $output);
     }
 
     public function testLogPathNoPermission()
@@ -1277,7 +1277,7 @@ class CommandTest extends TestCase
             '--log-path' => $directory->url() . '/logs'
         ]);
 
-        $this->assertContains('Log path is not writable: ['.$directory->url().'/logs]', $output);
+        $this->assertStringContainsString('Log path is not writable: ['.$directory->url().'/logs]', $output);
     }
 
     private function createDirectory($structure)

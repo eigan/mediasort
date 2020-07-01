@@ -302,7 +302,7 @@ class Command extends SymfonyCommand
      */
     private function addVerboseSubscriber(OutputInterface $output)
     {
-        $verboseSubscriber = new Subscribers\VerboseSubscriber($output);
+        $verboseSubscriber = new Subscribers\VerboseSubscriber($output, $this->formatter);
 
         foreach ($verboseSubscriber->subscribe() as $key => $callback) {
             $this->subscribe($key, $callback);

@@ -63,6 +63,16 @@ class FilenameFormatter
     }
 
     /**
+     * If we want to use the mediainfo command in PATH when our built-in id3 parser fails
+     *
+     * @return bool
+     */
+    public function useMediaInfo(): bool
+    {
+        return $this->useMediainfo;
+    }
+
+    /**
      * Sets a formatter, note that you can actually override another formatter here.
      *
      * @param string $name

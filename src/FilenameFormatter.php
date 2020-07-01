@@ -223,7 +223,7 @@ class FilenameFormatter
         }
 
 
-        if ($date === null && $this->useMediainfo && strtolower($file->getExtension()) === 'mts') {
+        if ($date === null && $this->useMediainfo) {
             // Try mediainfo..
             $mediainfo = shell_exec("mediainfo '" . $file->getPath() . "' --Output=JSON 2> /dev/null");
             $mediainfo = json_decode($mediainfo, true);

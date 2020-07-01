@@ -211,6 +211,10 @@ class FilenameFormatter
                     continue;
                 }
 
+                if ($subatom['creation_time_unix'] < 0) {
+                    continue;
+                }
+
                 $date = new \DateTime('@'.$subatom['creation_time_unix']);
                 $date->setTimezone(new \DateTimeZone(date_default_timezone_get()));
 

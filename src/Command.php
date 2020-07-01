@@ -15,6 +15,7 @@ use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
+use function str_replace;
 
 class Command extends SymfonyCommand
 {
@@ -89,7 +90,7 @@ class Command extends SymfonyCommand
         $this->addOption('ignore', '', InputOption::VALUE_OPTIONAL, 'Ignore files with extension');
         $this->addOption('only-type', '', InputOption::VALUE_REQUIRED, 'Only files with specific type', 'audio,image,video');
         $this->addOption('dry-run', '', InputOption::VALUE_NONE, 'Do not move or link files');
-        $this->addOption('log-path', '', InputOption::VALUE_OPTIONAL, 'Path to where put log');
+        $this->addOption('log-path', '', InputOption::VALUE_OPTIONAL, 'Path to where write logfile');
     }
 
     /**
@@ -216,6 +217,7 @@ class Command extends SymfonyCommand
 
             $success = false;
             $confirmed = false;
+            $destinationIsOk = false;
 
             if ($shouldLink) {
                 $confirmed = $symfonyStyle->confirm('Create hardlink?');
@@ -247,6 +249,7 @@ class Command extends SymfonyCommand
                 $this->logger->info(($shouldLink ? 'link' : 'move').' "'.$sourceFile->getPath().'" "'.$fileDestinationPath.'"');
             } elseif ($confirmed && !$dryRyn) {
                 $output->writeln('<fg=yellow>Operation failed</>');
+                $this->logger->info('failed "'.$sourceFile->getPath().'" "'.$fileDestinationPath.'" ' .($destinationIsOk ? 'Unknown' : 'Destination not OK'));
             }
         }
 
@@ -598,7 +601,7 @@ class Command extends SymfonyCommand
     }
 
     /**
-     * Takes a path, and create absolute path of it
+     * Takes a path, and create path that is readable from current position (file_exists())
      *
      * @param string $path
      *

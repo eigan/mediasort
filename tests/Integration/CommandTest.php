@@ -11,6 +11,7 @@ use Symfony\Component\Console\Input\ArgvInput;
 use Symfony\Component\Console\Output\BufferedOutput;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Tester\CommandTester;
+use function chmod;
 use function file_get_contents;
 
 class CommandTest extends TestCase
@@ -1181,13 +1182,18 @@ class CommandTest extends TestCase
     {
         $directory = $this->createDirectory([
             'source' => [
-                'myfile.jpg' => 'content'
+                'myfile.jpg' => 'content',
+                'restricted' => [
+                    'myfile2.jpg' => 'content'
+                ]
             ],
 
             'destination' => [
-
+                'restricted' => []
             ]
         ]);
+
+        chmod($directory->url() . '/destination/restricted', 0500);
 
         $output = $this->execute([
             'source' => $directory->url() . '/source',
@@ -1195,12 +1201,16 @@ class CommandTest extends TestCase
             '-r' => true,
 
             // Put in same structure as source
-            '--format' => ':name',
+            '--format' => ':original',
             '--log-path' => $directory->url()
         ]);
 
         $this->assertFileExists($directory->url() . '/mediasort.log');
-        $this->assertStringEqualsFile($directory->url() . '/mediasort.log', 'move "'.$directory->url().'/source/myfile.jpg" "'.$directory->url()."/destination/myfile.jpg\"\n");
+        $this->assertStringEqualsFile(
+            $directory->url() . '/mediasort.log',
+            'move "'.$directory->url().'/source/myfile.jpg" "'.$directory->url()."/destination/myfile.jpg\"\n" .
+            'failed "'.$directory->url().'/source/restricted/myfile2.jpg" "'.$directory->url()."/destination/restricted/myfile2.jpg\" Destination not OK\n"
+        );
     }
 
     public function testLogPathNotExists()

@@ -214,6 +214,8 @@ class Command extends SymfonyCommand
                     $output->writeln(' <fg=red>'.$e->getMessage().'</>');
                 }
 
+                $this->logger->info("failed \"{$sourceFile->getPath()}\" \"N/A\" Format failed");
+
                 continue;
             }
 

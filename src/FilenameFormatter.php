@@ -21,7 +21,7 @@ class FilenameFormatter
     /**
      * Cache path -> exif result
      *
-     * @var array
+     * @var array<string, array<mixed>>
      */
     private $cachedExif = [];
 
@@ -57,6 +57,11 @@ class FilenameFormatter
         $this->setupFormatters();
     }
 
+    /**
+     * @param bool $useExif
+     *
+     * @return void
+     */
     public function setUseExif(bool $useExif)
     {
         $this->useExif = $useExif;
@@ -76,8 +81,9 @@ class FilenameFormatter
      * Sets a formatter, note that you can actually override another formatter here.
      *
      * @param string $name
-     *
      * @param callable $formatter
+     *
+     * @return void
      */
     public function setFormatter(string $name, callable $formatter)
     {
@@ -149,7 +155,7 @@ class FilenameFormatter
      *
      * @param File $file
      *
-     * @return array
+     * @return array<mixed>
      */
     private function exif(File $file): array
     {
@@ -196,6 +202,11 @@ class FilenameFormatter
         return null;
     }
 
+    /**
+     * @param File $file
+     *
+     * @return array<mixed>
+     */
     private function id3(File $file)
     {
         $data = $this->id3Engine->analyze($file->getPath());
@@ -311,8 +322,10 @@ class FilenameFormatter
         return $this->cachedDate[$file->getPath()] = $date;
     }
 
-    /*
+    /**
      * Registers all the formatters
+     *
+     * @return void
      *
      * TODO: Make into a more dynamic system with classes etc
      */

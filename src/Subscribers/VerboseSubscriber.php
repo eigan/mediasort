@@ -2,10 +2,12 @@
 
 namespace Eigan\Mediasort\Subscribers;
 
+use Closure;
 use Eigan\Mediasort\FilenameFormatter;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 use function exec;
+use function is_string;
 
 class VerboseSubscriber
 {
@@ -25,6 +27,9 @@ class VerboseSubscriber
         $this->filenameFormatter = $filenameFormatter;
     }
 
+    /**
+     * @return array<string, Closure>
+     */
     public function subscribe(): array
     {
         return [
@@ -35,10 +40,14 @@ class VerboseSubscriber
                 $ignore = $input->getOption('ignore');
                 $dryRyn = $input->getOption('dry-run') ? 'true' : 'false';
 
-                $this->output->writeln("Format:\t\t\"$format\"");
+                if (is_string($format)) {
+                    $this->output->writeln("Format:\t\t\"$format\"");
+                }
+
                 $this->output->writeln("Use hardlink:\t$shouldLink");
                 $this->output->writeln("Recursive:\t$recursive");
-                if ($ignore) {
+
+                if (is_string($ignore)) {
                     $this->output->writeln("Ignore:\t$ignore");
                 }
 

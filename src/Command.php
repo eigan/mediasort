@@ -15,7 +15,13 @@ use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
+use function filemtime;
+use function filter_var;
+use function is_array;
+use function is_string;
+use function random_int;
 use function str_replace;
+use const FILTER_VALIDATE_BOOLEAN;
 
 class Command extends SymfonyCommand
 {
@@ -54,7 +60,13 @@ class Command extends SymfonyCommand
      */
     public function getApplication()
     {
-        return parent::getApplication();
+        $app = parent::getApplication();
+
+        if (!($app instanceof Application)) {
+            throw new InvalidArgumentException("Failed to create the application");
+        }
+
+        return $app;
     }
 
     /**
@@ -63,6 +75,8 @@ class Command extends SymfonyCommand
      *
      * @param string   $key
      * @param callable $callback
+     *
+     * @return void
      */
     public function subscribe(string $key, callable $callback)
     {
@@ -75,6 +89,8 @@ class Command extends SymfonyCommand
 
     /**
      * Setup the command by adding arguments and options
+     *
+     * @return void
      */
     protected function configure()
     {
@@ -112,13 +128,21 @@ class Command extends SymfonyCommand
         $this->publish('start', [$input]);
 
         $format = $input->getOption('format');
-        $shouldLink = $input->getOption('link');
-        $recursive = $input->getOption('recursive');
-        $dryRyn = $input->getOption('dry-run');
 
-        if ($input->getOption('log-path')) {
+        if (!is_string($format)) {
+            $output->writeln("Failed to read the format");
+            return 1;
+        }
+
+        $shouldLink = filter_var($input->getOption('link'), FILTER_VALIDATE_BOOLEAN);
+        $recursive = filter_var($input->getOption('recursive'), FILTER_VALIDATE_BOOLEAN);
+        $dryRyn = filter_var($input->getOption('dry-run'), FILTER_VALIDATE_BOOLEAN);
+
+        $logPath = $input->getOption('log-path');
+
+        if (is_string($logPath)) {
             try {
-                $this->setupLogger($input->getOption('log-path'));
+                $this->setupLogger($logPath);
             } catch (InvalidArgumentException $e) {
                 $output->writeln($e->getMessage());
                 return 1;
@@ -258,6 +282,12 @@ class Command extends SymfonyCommand
         return 0;
     }
 
+    /**
+     * @param OutputInterface $output
+     * @param File $sourceFile
+     *
+     * @return void
+     */
     private function outputFormatResults(OutputInterface $output, File $sourceFile)
     {
         $table = new Table($output);
@@ -277,6 +307,12 @@ class Command extends SymfonyCommand
         $table->render();
     }
 
+    /**
+     * @param string $logPath
+     * @throws \Exception
+     *
+     * @return void
+     */
     private function setupLogger(string $logPath)
     {
         if (file_exists($logPath) === false) {
@@ -299,6 +335,8 @@ class Command extends SymfonyCommand
      * Just wanted to move some of the heavy verbose stuff away from this file
      *
      * @param OutputInterface $output
+     *
+     * @return void
      */
     private function addVerboseSubscriber(OutputInterface $output)
     {
@@ -313,8 +351,10 @@ class Command extends SymfonyCommand
      * Publish and event
      * Just used by the verbose subscriber
      *
-     * @param string $key
-     * @param array  $parts
+     * @param string        $key
+     * @param array<mixed>  $parts payload
+     *
+     * @return void
      */
     private function publish(string $key, array $parts)
     {
@@ -330,19 +370,28 @@ class Command extends SymfonyCommand
      *
      * @param InputInterface $input
      *
-     * @return array [string $source, string $destination]
+     * @return array{0: string, 1: string} [$source, $destination]
      *
      * @throws InvalidArgumentException
      */
     private function resolvePaths(InputInterface $input): array
     {
-        $destination = $input->getArgument('destination') ?: $input->getArgument('source');
+        $argSource = $input->getArgument('source');
+        $argDestination = $input->getArgument('destination') ?: $input->getArgument('source');
 
-        $source = $this->realpath($input->getArgument('source'));
-        $destination = $this->realpath($destination);
+        if (!is_string($argSource) || !is_string($argDestination)) {
+            throw new InvalidArgumentException("Got invalid paths!");
+        }
+
+        $source = $this->realpath($argSource);
+        $destination = $this->realpath($argDestination);
 
         $sourceComponents = parse_url($source);
         $destinationComponents = parse_url($destination);
+
+        if (!is_array($sourceComponents) || !is_array($destinationComponents)) {
+            throw new InvalidArgumentException("Failed to info about paths!");
+        }
 
         if (
             (isset($sourceComponents['scheme']) && !isset($destinationComponents['scheme'])) ||
@@ -391,7 +440,7 @@ class Command extends SymfonyCommand
         $only = $input->getOption('only');
         $type = $input->getOption('only-type');
 
-        if ($ignore) {
+        if (is_string($ignore)) {
             $ignoreInput = explode(',', $ignore);
             $extensions = array_map(function ($ext) {
                 return trim($ext);
@@ -402,7 +451,7 @@ class Command extends SymfonyCommand
             }
         }
 
-        if ($only) {
+        if (is_string($only)) {
             $input = explode(',', $only);
             $extensions = array_map(function ($ext) {
                 return trim($ext);
@@ -421,7 +470,11 @@ class Command extends SymfonyCommand
             return true;
         }
 
-        $types = explode(',', $type);
+        $types = [];
+
+        if (is_string($type)) {
+            $types = explode(',', $type);
+        }
 
         if (in_array($file->getType(), $types, true)) {
             return false;
@@ -482,7 +535,7 @@ class Command extends SymfonyCommand
      * @param File   $sourceFile
      * @param string $fileDestinationPath
      *
-     * @return string|null
+     * @return string
      *
      * @throws IncrementedPathIsDuplicate
      */
@@ -554,7 +607,7 @@ class Command extends SymfonyCommand
      * @param string $root
      * @param bool   $recursive
      *
-     * @return \Iterator
+     * @return \Iterator<File>
      */
     private function iterate(string $root, bool $recursive = false): \Iterator
     {
@@ -579,7 +632,13 @@ class Command extends SymfonyCommand
             }
 
             if ($file->isDir() === false) {
-                $paths[date('U', filemtime($pathname)) . $pathname] = $pathname;
+                $modifiedTime = filemtime($pathname);
+
+                if ($modifiedTime === false) {
+                    $modifiedTime = random_int(1, 1000);
+                }
+
+                $paths[date('U', $modifiedTime) . $pathname] = $pathname;
             }
 
             if ($file->isDir() && !$file->isDot()) {

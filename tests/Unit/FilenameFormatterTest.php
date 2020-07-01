@@ -67,7 +67,7 @@ class FilenameFormatterTest extends TestCase
      */
     protected $formatter;
 
-    public function setUp()
+    public function setUp(): void
     {
         $this->directory =  vfsStream::setup('test', null, [
             'source' => [

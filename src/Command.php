@@ -15,13 +15,17 @@ use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
+use function file_exists;
 use function filemtime;
 use function filter_var;
 use function is_array;
 use function is_string;
+use function pathinfo;
+use function preg_replace;
 use function random_int;
 use function str_replace;
 use const FILTER_VALIDATE_BOOLEAN;
+use const PATHINFO_EXTENSION;
 
 class Command extends SymfonyCommand
 {
@@ -325,6 +329,18 @@ class Command extends SymfonyCommand
 
         $logPath .= '/mediasort.log';
 
+        if(file_exists($logPath)) {
+            $logPath = $this->replaceLastOccurrence('.log', " (1).log", $logPath);
+
+            $i = 1;
+            while (file_exists($logPath)) {
+                $logPath = $this->incrementFilename($logPath, $i++);
+
+            }
+        }
+
+
+
         $streamHandler = new StreamHandler($logPath);
         $streamHandler->setFormatter(new LineFormatter("%message%\n"));
 
@@ -543,20 +559,6 @@ class Command extends SymfonyCommand
     {
         $index = 0;
 
-        $increment = function ($path, $index) {
-            $extension = pathinfo($path, PATHINFO_EXTENSION);
-
-            $regex = "\((\d*)\)(?!.*\((\d*)\))";
-            $replace = '('.$index.')';
-
-            if ($extension) {
-                $regex .= ".*$extension";
-                $replace .= ".$extension";
-            }
-
-            return preg_replace('/'.$regex.'/', $replace, $path, 1);
-        };
-
         $extension = pathinfo($fileDestinationPath, PATHINFO_EXTENSION);
         $isNotDuplicate = false;
 
@@ -567,7 +569,7 @@ class Command extends SymfonyCommand
         }
 
         do {
-            $fileDestinationPath = $increment($fileDestinationPath, ++$index);
+            $fileDestinationPath = $this->incrementFilename($fileDestinationPath, ++$index);
         } while (file_exists($fileDestinationPath) && $isNotDuplicate = !$this->isDuplicate($sourceFile, $fileDestinationPath));
 
         if ($isNotDuplicate === false && file_exists($fileDestinationPath)) {
@@ -707,5 +709,25 @@ class Command extends SymfonyCommand
         }
 
         return $subject;
+    }
+
+    /**
+     * @param string $path
+     * @param int $index
+     * @return string
+     */
+    private function incrementFilename(string $path, int $index)
+    {
+        $extension = pathinfo($path, PATHINFO_EXTENSION);
+
+        $regex = "\((\d*)\)(?!.*\((\d*)\))";
+        $replace = '('.$index.')';
+
+        if ($extension) {
+            $regex .= ".*$extension";
+            $replace .= ".$extension";
+        }
+
+        return preg_replace('/'.$regex.'/', $replace, $path, 1);
     }
 }

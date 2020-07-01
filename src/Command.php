@@ -158,6 +158,8 @@ class Command extends SymfonyCommand
             $output->writeln('<fg=white;bg=red>Exif not enabled. Dates might be incorrect!</>');
             $output->writeln('<fg=white;bg=red>!</>');
 
+            $this->logger->warning('Exif not enabled. Dates might be incorrect');
+
             $this->formatter->setUseExif(false);
         }
 

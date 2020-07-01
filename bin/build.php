@@ -17,7 +17,7 @@ $phar->stopBuffering();
 function files(): \Iterator {
     $iterator = new RecursiveDirectoryIterator(__DIR__ . "/../");
 
-    $ignored = ['composer.lock', 'mediasort.gif'];
+    $ignored = ['composer.lock', 'mediasort.gif', 'composer.json', '.php_cs', 'phpunit.xml', 'phpstan.neon', '.phpunit.result.cache'];
 
     foreach(new RecursiveIteratorIterator($iterator) as $file) {
         if($file->isDir() === true) {
@@ -36,6 +36,10 @@ function files(): \Iterator {
             continue;
         }
 
+        if (strpos($file->getPath(), '/.idea') !== false) {
+            continue;
+        }
+
         if (strpos($file->getPath(), '/demos') !== false) {
             continue;
         }
@@ -43,7 +47,7 @@ function files(): \Iterator {
         if (in_array($file->getFilename(), $ignored)) {
             continue;
         }
-        
+
         yield $file;
     }
 }

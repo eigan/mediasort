@@ -1217,11 +1217,13 @@ class CommandTest extends TestCase
 
         $this->assertFileExists($directory->url() . '/mediasort.log');
         $this->assertFileExists($directory->url() . '/mediasort (1).log');
-        $this->assertStringEqualsFile(
-            $directory->url() . '/mediasort.log',
-            'move "'.$directory->url().'/source/myfile.jpg" "'.$directory->url()."/destination/myfile.jpg\"\n" .
-            'failed "'.$directory->url().'/source/restricted/myfile2.jpg" "'.$directory->url()."/destination/restricted/myfile2.jpg\" Destination not OK\n"
-        );
+
+        $logFile = $directory->url() . '/mediasort.log';
+
+        $this->assertLogged($logFile, [
+            'move "'.$directory->url().'/source/myfile.jpg" "'.$directory->url()."/destination/myfile.jpg\"",
+            'failed "'.$directory->url().'/source/restricted/myfile2.jpg" "'.$directory->url()."/destination/restricted/myfile2.jpg\" Destination not OK"
+        ]);
     }
 
     public function testLogPathNotExists()
@@ -1294,5 +1296,14 @@ class CommandTest extends TestCase
         ]);
 
         return $this->commandTester->getDisplay();
+    }
+
+    private function assertLogged(string $logFile, array $expectedMessages)
+    {
+        $logContent = file_get_contents($logFile);
+
+        foreach($expectedMessages as $message) {
+            $this->assertStringContainsString($message, $logContent);
+        }
     }
 }

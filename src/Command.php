@@ -312,10 +312,8 @@ class Command extends SymfonyCommand
             }
         }
 
-
-
         $streamHandler = new StreamHandler($logPath);
-        $streamHandler->setFormatter(new LineFormatter("%message%\n"));
+        $streamHandler->setFormatter(new LineFormatter("[%datetime%] %message%\n"));
 
         $this->logger->setHandlers([$streamHandler]);
     }

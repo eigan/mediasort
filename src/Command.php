@@ -238,6 +238,7 @@ class Command extends SymfonyCommand
             }
 
             if ($sourceFile->isReadable() === false) {
+                $this->logger->info("failed \"{$sourceFile->getPath()}\" \"$fileDestinationPath\" Source not readable");
                 continue;
             }
 

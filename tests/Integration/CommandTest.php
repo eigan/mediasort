@@ -23,7 +23,7 @@ class CommandTest extends TestCase
     public function setUp()
     {
         $application = new Application();
-        $command = $application->find('move');
+        $command = $application->find('sort');
 
         $this->commandTester = new CommandTester($command);
     }
@@ -122,7 +122,7 @@ class CommandTest extends TestCase
         ]);
 
         $application = new Application($root->url() . '/home/einar');
-        $command = $application->find('move');
+        $command = $application->find('sort');
 
         $this->commandTester = new CommandTester($command);
 
@@ -180,7 +180,7 @@ class CommandTest extends TestCase
         ]);
 
         $application = new Application($root->url() . '/home/einar/pictures');
-        $command = $application->find('move');
+        $command = $application->find('sort');
 
         $this->commandTester = new CommandTester($command);
 
@@ -623,7 +623,7 @@ class CommandTest extends TestCase
     {
         $application = new Application();
 
-        $command = $application->find('move');
+        $command = $application->find('sort');
 
         $commandTester = new CommandTester($command);
 
@@ -769,7 +769,7 @@ class CommandTest extends TestCase
         $application = new Application();
 
         /** @var Command $command */
-        $command = $application->find('move');
+        $command = $application->find('sort');
 
         $commandTester = new CommandTester($command);
 

@@ -39,7 +39,7 @@ class Application extends SymfonyApplication
         $this->formatter = new FilenameFormatter(true, $haveMediainfo);
         $this->logger = new Logger('mediasort', [new NullHandler()]);
 
-        $this->setDefaultCommand('move', true);
+        $this->setDefaultCommand('sort', true);
 
         $this->getDefinition()->addOption(
             new InputOption('--no-exif', '', InputOption::VALUE_NONE, 'Disable exif requirement')

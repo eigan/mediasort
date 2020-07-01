@@ -77,7 +77,7 @@ class Command extends SymfonyCommand
      */
     protected function configure()
     {
-        $this->setName('move');
+        $this->setName('sort');
 
         $this->addArgument('source', InputArgument::REQUIRED);
         $this->addArgument('destination', InputArgument::OPTIONAL);
@@ -242,7 +242,7 @@ class Command extends SymfonyCommand
                     }
                 }
             }
-            
+
             if ($success) {
                 $this->logger->info(($shouldLink ? 'link' : 'move').' "'.$sourceFile->getPath().'" "'.$fileDestinationPath.'"');
             } elseif ($confirmed && !$dryRyn) {
@@ -385,7 +385,7 @@ class Command extends SymfonyCommand
         $ignore = $input->getOption('ignore');
         $only = $input->getOption('only');
         $type = $input->getOption('only-type');
-        
+
         if ($ignore) {
             $ignoreInput = explode(',', $ignore);
             $extensions = array_map(function ($ext) {

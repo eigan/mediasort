@@ -3,7 +3,9 @@
 namespace Eigan\Mediasort\Subscribers;
 
 use Closure;
+use Eigan\Mediasort\File;
 use Eigan\Mediasort\FilenameFormatter;
+use Symfony\Component\Console\Helper\Table;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 use function exec;
@@ -64,11 +66,45 @@ class VerboseSubscriber
                 $this->output->writeln('');
             },
 
+            'iterate.start' => function(File $sourceFile) {
+                if ($this->output->isVeryVerbose()) {
+                    $this->output->writeln('-----');
+                    $this->output->writeln($sourceFile->getPath());
+
+                    $this->outputFormatResults($this->output, $sourceFile);
+                }
+            },
+
             'paths.resolved' => function (string $source, string $destination) {
                 $this->output->writeln("Source:\t\t$source");
                 $this->output->writeln("Destination:\t$destination");
                 $this->output->writeln('');
             }
         ];
+    }
+
+    /**
+     * @param OutputInterface $output
+     * @param File $sourceFile
+     *
+     * @return void
+     */
+    private function outputFormatResults(OutputInterface $output, File $sourceFile)
+    {
+        $table = new Table($output);
+
+        $table->setHeaders(['Format', 'Result']);
+
+        foreach ($this->filenameFormatter->getFormats() as $format) {
+            try {
+                $result = $this->filenameFormatter->format($format, $sourceFile);
+            } catch (\Exception $e) {
+                continue;
+            }
+
+            $table->addRow([$format, $result]);
+        }
+
+        $table->render();
     }
 }

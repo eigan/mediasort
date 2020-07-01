@@ -198,13 +198,6 @@ class Command extends SymfonyCommand
 
             $this->publish('iterate.start', [$sourceFile]);
 
-            if ($output->isVeryVerbose()) {
-                $output->writeln('-----');
-                $output->writeln($sourceFile->getPath());
-
-                $this->outputFormatResults($output, $sourceFile);
-            }
-
             try {
                 $fileDestinationPath = $this->formatDestinationPath($destination, $sourceFile, $format);
             } catch (RuntimeException $e) {
@@ -289,31 +282,6 @@ class Command extends SymfonyCommand
         }
 
         return 0;
-    }
-
-    /**
-     * @param OutputInterface $output
-     * @param File $sourceFile
-     *
-     * @return void
-     */
-    private function outputFormatResults(OutputInterface $output, File $sourceFile)
-    {
-        $table = new Table($output);
-
-        $table->setHeaders(['Format', 'Result']);
-
-        foreach ($this->formatter->getFormats() as $format) {
-            try {
-                $result = $this->formatter->format($format, $sourceFile);
-            } catch (\Exception $e) {
-                continue;
-            }
-
-            $table->addRow([$format, $result]);
-        }
-
-        $table->render();
     }
 
     /**

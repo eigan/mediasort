@@ -222,6 +222,7 @@ class Command extends SymfonyCommand
             if (file_exists($fileDestinationPath)) {
                 if ($this->isDuplicate($sourceFile, $fileDestinationPath)) {
                     $output->writeln("<fg=yellow>Skipped: Duplicate {$sourceFile->getPath()} -> $fileDestinationPath</>");
+                    $this->logger->info("skipped \"{$sourceFile->getPath()}\" \"N/A\" Duplicate");
                     continue;
                 }
 
@@ -229,6 +230,7 @@ class Command extends SymfonyCommand
                     $incrementedPath = $this->incrementPath($sourceFile, $fileDestinationPath);
                 } catch (IncrementedPathIsDuplicate $e) {
                     $output->writeln("<fg=yellow>Skipped: Duplicate {$sourceFile->getPath()} -> {$e->getIncrementedPath()}</>");
+                    $this->logger->info("skipped \"{$sourceFile->getPath()}\" \"N/A\" Duplicate");
                     continue;
                 }
 

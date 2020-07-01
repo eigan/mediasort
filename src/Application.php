@@ -56,7 +56,7 @@ class Application extends SymfonyApplication
         return $this->formatter;
     }
 
-    public function shouldUseExif(InputInterface $input)
+    public function shouldUseExif(InputInterface $input): bool
     {
         if (function_exists('exif_read_data') === false || $input->getOption('no-exif')) {
             return false;

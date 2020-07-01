@@ -1,3 +1,4 @@
 parameters:
-	ignoreErrors:
-		- '#Method Eigan\\Mediasort\\Command::getApplication\(\) should return Eigan\\Mediasort\\Application but returns Symfony\\Component\\Console\\Application#'
+    level: max
+    paths:
+        - src

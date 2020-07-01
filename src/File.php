@@ -2,6 +2,8 @@
 
 namespace Eigan\Mediasort;
 
+use RuntimeException;
+
 class File
 {
     /**
@@ -47,42 +49,51 @@ class File
         $this->path = $path;
     }
 
-    public function getName()
+    public function getName(): string
     {
         return pathinfo($this->path, PATHINFO_FILENAME);
     }
 
-    public function getPath()
+    public function getPath(): string
     {
         return $this->path;
     }
 
-    public function getExtension()
+    public function getExtension(): string
     {
         return pathinfo($this->path, PATHINFO_EXTENSION);
     }
 
-    public function getDirectoryName()
+    public function getDirectoryName(): string
     {
         return basename(pathinfo($this->path, PATHINFO_DIRNAME));
     }
 
-    public function isReadable()
+    public function isReadable(): bool
     {
         return is_readable($this->path);
     }
 
+    /**
+     * @return false|int
+     */
     public function getSize()
     {
         return filesize($this->path);
     }
 
-    public function getMimeType()
+    public function getMimeType(): string
     {
-        return mime_content_type($this->path);
+        $mimeType =  mime_content_type($this->path);
+
+        if ($mimeType === false) {
+            throw new RuntimeException("Failed to parse mime for {$this->path}");
+        }
+
+        return $mimeType;
     }
 
-    public function getType()
+    public function getType(): string
     {
         $extension = strtolower($this->getExtension());
 

@@ -100,7 +100,7 @@ class CommandTest extends TestCase
             '--format' => ':name'
         ], ['verbosity' => OutputInterface::VERBOSITY_VERBOSE]);
 
-        $this->assertContains('Destination: ' . $directory->url() . '/source', $output);
+        $this->assertContains("Destination:\t" . $directory->url() . '/source', $output);
         $this->assertFileExists($directory->url() . '/source/myfile.jpg');
     }
 
@@ -581,8 +581,8 @@ class CommandTest extends TestCase
             '--format' => ':name'
         ], ['verbosity' => OutputInterface::VERBOSITY_VERY_VERBOSE]);
 
-        $this->assertContains('Source: ' . $directory->url() . '/source', $output);
-        $this->assertContains('Destination: ' . $directory->url() . '/destination', $output);
+        $this->assertContains("Source:\t\t" . $directory->url() . '/source', $output);
+        $this->assertContains("Destination:\t" . $directory->url() . '/destination', $output);
 
         $this->assertContains('- ' . $directory->url() . '/source/myfile.jpg', $output);
     }

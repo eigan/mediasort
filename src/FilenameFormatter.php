@@ -232,7 +232,6 @@ class FilenameFormatter
                 foreach($mediainfo['media']['track'] as $track) {
                     if(isset($track['Recorded_Date'])) {
                         $date = new \DateTime($track['Recorded_Date']);
-                        $date->setTimezone(new \DateTimeZone(date_default_timezone_get()));
                         break;
                     }
                 }

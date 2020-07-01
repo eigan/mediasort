@@ -1205,7 +1205,18 @@ class CommandTest extends TestCase
             '--log-path' => $directory->url()
         ]);
 
+        $output2 = $this->execute([
+            'source' => $directory->url() . '/source',
+            'destination' => $directory->url() . '/destination',
+            '-r' => true,
+
+            // Put in same structure as source
+            '--format' => ':original',
+            '--log-path' => $directory->url()
+        ]);
+
         $this->assertFileExists($directory->url() . '/mediasort.log');
+        $this->assertFileExists($directory->url() . '/mediasort (1).log');
         $this->assertStringEqualsFile(
             $directory->url() . '/mediasort.log',
             'move "'.$directory->url().'/source/myfile.jpg" "'.$directory->url()."/destination/myfile.jpg\"\n" .

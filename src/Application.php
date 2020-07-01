@@ -76,7 +76,7 @@ class Application extends SymfonyApplication
         ];
     }
 
-    private function haveMediainfoBin(): bool
+    private function haveMediaInfoBin(): bool
     {
         $returnCode = 0;
         $output = "";

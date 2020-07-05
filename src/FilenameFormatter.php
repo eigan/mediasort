@@ -258,7 +258,7 @@ class FilenameFormatter
                 }
 
                 if ($this->haveSetTimezone === false) {
-                    throw new NoTimezoneDefinedException();
+                    throw new NoTimezoneDefinedException($file);
                 }
 
                 $date = new \DateTime('@'.$subatom['creation_time_unix']);

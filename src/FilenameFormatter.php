@@ -2,9 +2,11 @@
 
 namespace Eigan\Mediasort;
 
+use Eigan\Mediasort\Exception\NoTimezoneDefinedException;
 use function date_default_timezone_get;
 use \getid3_lib;
 use InvalidArgumentException;
+use function date_default_timezone_set;
 use function is_array;
 use function json_decode;
 use RuntimeException;
@@ -47,6 +49,11 @@ class FilenameFormatter
      * @var \getID3
      */
     private $id3Engine;
+
+    /**
+     * @var bool
+     */
+    private $haveSetTimezone = false;
 
     public function __construct(bool $useExif = true, bool $useMediainfo = false)
     {
@@ -91,6 +98,18 @@ class FilenameFormatter
     }
 
     /**
+     * Timezone used when we rely on UTC dates and want to convert to correct timezone
+     *
+     * @param string $timezone
+     */
+    public function setTimezoneFallback(string $timezone): void
+    {
+        date_default_timezone_set($timezone);
+
+        $this->haveSetTimezone = true;
+    }
+
+    /**
      * @return string[]
      */
     public function getFormats(): array
@@ -129,6 +148,8 @@ class FilenameFormatter
             $callbacks['/' . $formatterPattern . '/'] = function () use ($formatterFunction, $file, $formatterPattern) {
                 try {
                     $result = $formatterFunction($file);
+                } catch (NoTimezoneDefinedException $e) {
+                    throw $e;
                 } catch (\Exception $e) {
                     throw new RuntimeException("The format: [$formatterPattern] failed with message: " . $e->getMessage());
                 }
@@ -234,6 +255,10 @@ class FilenameFormatter
 
                 if ($subatom['creation_time_unix'] < 0) {
                     continue;
+                }
+
+                if ($this->haveSetTimezone === false) {
+                    throw new NoTimezoneDefinedException();
                 }
 
                 $date = new \DateTime('@'.$subatom['creation_time_unix']);

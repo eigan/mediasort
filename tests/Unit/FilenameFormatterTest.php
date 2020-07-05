@@ -231,6 +231,7 @@ class FilenameFormatterTest extends TestCase
         $defaultTimezone = date_default_timezone_get();
         date_default_timezone_set('Europe/Oslo');
 
+        $this->formatter->setTimezoneFallback("Europe/Oslo");
         $this->assertEquals('20:07:58', $this->formatter->format(':time', new File(__DIR__ . '/../id3.mp4')));
 
         date_default_timezone_set($defaultTimezone);

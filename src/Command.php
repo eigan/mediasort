@@ -3,6 +3,7 @@
 namespace Eigan\Mediasort;
 
 use Eigan\Mediasort\Exception\IncrementedPathIsDuplicate;
+use Eigan\Mediasort\Exception\NoTimezoneDefinedException;
 use InvalidArgumentException;
 use Monolog\Formatter\LineFormatter;
 use Monolog\Handler\StreamHandler;
@@ -114,6 +115,7 @@ class Command extends SymfonyCommand
         $this->addOption('dry-run', '', InputOption::VALUE_NONE, 'Do not move or link files');
         $this->addOption('log-path', '', InputOption::VALUE_OPTIONAL, 'Path to where write logfile');
         $this->addOption('ignore-checksum', '', InputOption::VALUE_NONE, 'Skip duplication check with checksum, use only size and date');
+        $this->addOption('timezone-fallback', '', InputOption::VALUE_NONE, 'Timezone when we are unable to retrieve the timezone from file.');
     }
 
     /**
@@ -145,6 +147,7 @@ class Command extends SymfonyCommand
         $recursive = filter_var($input->getOption('recursive'), FILTER_VALIDATE_BOOLEAN);
         $dryRyn = filter_var($input->getOption('dry-run'), FILTER_VALIDATE_BOOLEAN);
         $ignoreChecksum = filter_var($input->getOption('ignore-checksum'), FILTER_VALIDATE_BOOLEAN);
+        $timezoneFallback = $input->getOption('timezone-fallback');
 
         $logPath = $input->getOption('log-path');
 
@@ -155,6 +158,10 @@ class Command extends SymfonyCommand
                 $output->writeln($e->getMessage());
                 return 1;
             }
+        }
+
+        if (is_string($timezoneFallback)) {
+            $this->formatter->setTimezoneFallback($timezoneFallback);
         }
 
         if (empty($type = $input->getOption('only-type'))) {
@@ -204,6 +211,15 @@ class Command extends SymfonyCommand
 
             try {
                 $fileDestinationPath = $this->formatDestinationPath($destination, $sourceFile, $format);
+            } catch (NoTimezoneDefinedException $e) {
+                $output->writeln("");
+                $output->writeln('<fg=red>Missing timezone</>');
+                $output->writeln("The current file failed because a fallback timezone was not provided. Please provide your timezone with the --timezone-fallback option.");
+                $output->writeln("The file most likely store its date in UTC, and we wanted to convert to your local timezone.");
+                $output->writeln("See list of supported timezones here: https://www.php.net/manual/en/timezones.php.");
+                $output->writeln("Example:\n\t--timezone-fallback Europe/Oslo\n\t--timezone-fallback America/Havana");
+
+                return 1;
             } catch (RuntimeException $e) {
                 $output->writeln("<fg=yellow>Skipped: Format failed {$sourceFile->getPath()}</>");
 

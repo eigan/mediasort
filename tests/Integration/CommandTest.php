@@ -1141,13 +1141,21 @@ class CommandTest extends TestCase
             '--link' => true
         ]);
 
-        $this->assertFileExists($testDestination . '/2017-06-21 17:49:56.jpg');
-        $this->assertFileNotExists($testDestination . '/2017-06-21 17:49:56 (1).jpg');
-        $this->assertStringContainsString('Skipped: Duplicate', $output);
+        try {
+            $this->assertFileExists($testDestination . '/2017-06-21 17:49:56.jpg');
+            $this->assertFileNotExists($testDestination . '/2017-06-21 17:49:56 (1).jpg');
+            $this->assertStringContainsString('Skipped: Duplicate', $output);
+        } catch (Exception $e) {
+            // pass
+        }
 
         unlink(__DIR__ . '/../exif_linked.jpg');
         array_map('unlink', glob($testDestination . '/*.*'));
         rmdir($testDestination);
+
+        if (isset($e)) {
+            throw $e;
+        }
     }
 
     public function testSkipSynologyEaDir()

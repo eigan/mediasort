@@ -454,6 +454,7 @@ class FilenameFormatter
                 $extension = $file->getExtension();
 
                 if ($extension) {
+                    $extension = strtolower($extension);
                     return ".$extension";
                 }
 

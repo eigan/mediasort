@@ -5,6 +5,7 @@ namespace Eigan\Mediasort\Tests\Integration;
 use Eigan\Mediasort\Application;
 use Eigan\Mediasort\Command;
 use Eigan\Mediasort\File;
+use Exception;
 use org\bovigo\vfs\vfsStream;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Console\Input\ArgvInput;
@@ -269,6 +270,7 @@ class CommandTest extends TestCase
         $directory = $this->createDirectory([
             'source' => [
                 'myfile.jpg' => 'content',
+                'myfile.JPG' => 'content',
                 'nested' => [
                     'OtherFilename.jpg' => 'content'
                 ]
@@ -322,6 +324,32 @@ class CommandTest extends TestCase
         $this->assertStringContainsString('Skipped: Duplicate vfs://test/source/otherfile.jpg -> vfs://test/destination/duplicate (1).jpg', $output);
     }
 
+    public function testSkipDuplicate3()
+    {
+        $directory = $this->createDirectory([
+            'source' => [
+                'myfile.JPG' => 'content2',
+                'myfile.jpg' => 'content2'
+            ],
+            'destination' => [
+            ]
+        ]);
+
+        $output = $this->execute([
+            'source' => $directory->url() . '/source',
+            'destination' => $directory->url() . '/destination',
+
+            '--format' => ':original',
+        ], ['interactive' => false, 'verbosity' => OutputInterface::VERBOSITY_VERBOSE]);
+
+        // Uppercase extension renamed to lowercase
+        $this->assertStringContainsString("- vfs://test/source/myfile.JPG (move)\n+ vfs://test/destination/myfile.jpg\n", $output);
+        $this->assertFileExists($directory->url() . '/destination/myfile.jpg');
+
+        // Not moved because duplicate
+        $this->assertFileExists($directory->url() . '/source/myfile.jpg');
+    }
+
     public function testOnly()
     {
         $directory = $this->createDirectory([
@@ -353,7 +381,7 @@ class CommandTest extends TestCase
         $this->assertFileNotExists($root . '/source/myfile.JPG');
 
         $this->assertFileExists($root . '/destination/myfile.jpg');
-        $this->assertFileExists($root . '/destination/myfile.JPG');
+        $this->assertFileExists($root . '/destination/myfile (1).jpg');
     }
 
     public function testIgnore()
@@ -389,7 +417,7 @@ class CommandTest extends TestCase
         $this->assertFileNotExists($root . '/source/myfile.JPG');
 
         $this->assertFileExists($root . '/destination/myfile.jpg');
-        $this->assertFileExists($root . '/destination/myfile.JPG');
+        $this->assertFileExists($root . '/destination/myfile (1).jpg');
     }
 
     public function testNotRecursive()

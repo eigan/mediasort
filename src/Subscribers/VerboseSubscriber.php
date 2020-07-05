@@ -9,7 +9,9 @@ use Symfony\Component\Console\Helper\Table;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 use function exec;
+use function filter_var;
 use function is_string;
+use const FILTER_VALIDATE_BOOLEAN;
 
 class VerboseSubscriber
 {
@@ -42,6 +44,7 @@ class VerboseSubscriber
                 $ignore = $input->getOption('ignore');
                 $dryRyn = $input->getOption('dry-run') ? 'true' : 'false';
                 $timezone = date_default_timezone_get();
+                $ignoreChecksum = filter_var($input->getOption('ignore-checksum'), FILTER_VALIDATE_BOOLEAN) ? 'true' : 'false';
 
                 if (is_string($format)) {
                     $this->output->writeln("Format:\t\t\"$format\"");
@@ -50,6 +53,7 @@ class VerboseSubscriber
                 $this->output->writeln("Timezone:\t$timezone");
                 $this->output->writeln("Use hardlink:\t$shouldLink");
                 $this->output->writeln("Recursive:\t$recursive");
+                $this->output->writeln("Use Checksum:\t$ignoreChecksum");
 
                 if (is_string($ignore)) {
                     $this->output->writeln("Ignore:\t$ignore");

@@ -16,7 +16,9 @@ use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
 use function file_exists;
+use function fileinode;
 use function filemtime;
+use function filesize;
 use function filter_var;
 use function is_array;
 use function is_string;
@@ -111,6 +113,7 @@ class Command extends SymfonyCommand
         $this->addOption('only-type', '', InputOption::VALUE_REQUIRED, 'Only files with specific type', 'audio,image,video');
         $this->addOption('dry-run', '', InputOption::VALUE_NONE, 'Do not move or link files');
         $this->addOption('log-path', '', InputOption::VALUE_OPTIONAL, 'Path to where write logfile');
+        $this->addOption('ignore-checksum', '', InputOption::VALUE_NONE, 'Skip duplication check with checksum, use only size and date');
     }
 
     /**
@@ -141,6 +144,7 @@ class Command extends SymfonyCommand
         $shouldLink = filter_var($input->getOption('link'), FILTER_VALIDATE_BOOLEAN);
         $recursive = filter_var($input->getOption('recursive'), FILTER_VALIDATE_BOOLEAN);
         $dryRyn = filter_var($input->getOption('dry-run'), FILTER_VALIDATE_BOOLEAN);
+        $ignoreChecksum = filter_var($input->getOption('ignore-checksum'), FILTER_VALIDATE_BOOLEAN);
 
         $logPath = $input->getOption('log-path');
 
@@ -213,14 +217,14 @@ class Command extends SymfonyCommand
             }
 
             if (file_exists($fileDestinationPath)) {
-                if ($this->isDuplicate($sourceFile, $fileDestinationPath)) {
+                if ($this->isDuplicate($sourceFile, $fileDestinationPath, $ignoreChecksum)) {
                     $output->writeln("<fg=yellow>Skipped: Duplicate {$sourceFile->getPath()} -> $fileDestinationPath</>");
                     $this->logger->info("skipped \"{$sourceFile->getPath()}\" \"N/A\" Duplicate");
                     continue;
                 }
 
                 try {
-                    $incrementedPath = $this->incrementPath($sourceFile, $fileDestinationPath);
+                    $incrementedPath = $this->incrementPath($sourceFile, $fileDestinationPath, $ignoreChecksum);
                 } catch (IncrementedPathIsDuplicate $e) {
                     $output->writeln("<fg=yellow>Skipped: Duplicate {$sourceFile->getPath()} -> {$e->getIncrementedPath()}</>");
                     $this->logger->info("skipped \"{$sourceFile->getPath()}\" \"N/A\" Duplicate");
@@ -518,15 +522,11 @@ class Command extends SymfonyCommand
 
     /**
      * Given a path, increment until we get a usable filename
-     *
-     * @param File   $sourceFile
-     * @param string $fileDestinationPath
-     *
      * @return string
      *
      * @throws IncrementedPathIsDuplicate
      */
-    private function incrementPath(File $sourceFile, string $fileDestinationPath)
+    private function incrementPath(File $sourceFile, string $fileDestinationPath, bool $ignoreChecksum)
     {
         $index = 0;
 
@@ -541,7 +541,7 @@ class Command extends SymfonyCommand
 
         do {
             $fileDestinationPath = $this->incrementFilename($fileDestinationPath, ++$index);
-        } while (file_exists($fileDestinationPath) && $isNotDuplicate = !$this->isDuplicate($sourceFile, $fileDestinationPath));
+        } while (file_exists($fileDestinationPath) && $isNotDuplicate = !$this->isDuplicate($sourceFile, $fileDestinationPath, $ignoreChecksum));
 
         if ($isNotDuplicate === false && file_exists($fileDestinationPath)) {
             throw new IncrementedPathIsDuplicate($sourceFile, $fileDestinationPath);
@@ -553,25 +553,26 @@ class Command extends SymfonyCommand
     /**
      * Check if the given path is a duplicate
      *
-     * @param File   $sourceFile
-     * @param string $fileDestinationPath
-     *
      * @return bool
      */
-    private function isDuplicate(File $sourceFile, string $fileDestinationPath): bool
+    private function isDuplicate(File $sourceFile, string $fileDestinationPath, bool $ignoreChecksum): bool
     {
-        if ($sourceFile->getSize() === filesize($fileDestinationPath)) {
-            $sourceInode = fileinode($sourceFile->getPath());
-            $destinationInode = fileinode($fileDestinationPath);
+        $sourceInode = fileinode($sourceFile->getPath());
+        $destinationInode = fileinode($fileDestinationPath);
 
-            if ((!$sourceInode && !$destinationInode) || ($sourceInode !== $destinationInode)) {
+        $haveDifferentInode = ((!$sourceInode && !$destinationInode) || ($sourceInode !== $destinationInode));
+
+        if ($haveDifferentInode) {
+            $haveSameFileSize = $sourceFile->getSize() === filesize($fileDestinationPath);
+
+            if ($ignoreChecksum === false && $haveSameFileSize) {
                 return hash_file('md5', $sourceFile->getPath()) === hash_file('md5', $fileDestinationPath);
             }
 
-            return $sourceInode === $destinationInode;
+            return $haveSameFileSize && $sourceInode === $destinationInode;
         }
 
-        return false;
+        return $sourceInode === $destinationInode;
     }
 
     /**
